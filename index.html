@@ -110,7 +110,7 @@
   .progress-line b{color:var(--coral-deep);font-size:14px}
 
   .stage{position:relative;z-index:1}
-  .flip-wrap{perspective:1400px;height:clamp(210px,calc(100dvh - 522px),368px);margin:0 0 14px}
+  .flip-wrap{perspective:1400px;height:clamp(200px,calc(100dvh - 578px),364px);margin:0 0 10px}
   .flip-card{
     position:relative;width:100%;height:100%;
     transform-style:preserve-3d;
@@ -176,6 +176,33 @@
   .mini-stamps i.on{background:var(--coral)}
   .mini-stamps.dense{gap:2px}
   .mini-stamps.dense i{width:5px;height:5px}
+
+  /* 복습 체크 — 카드 바깥(카드 바로 밑) 별도 영역, 눌러도 카드는 뒤집히지 않음 */
+  .rcheck{
+    display:flex;align-items:center;gap:8px;min-width:0;
+    margin:0 0 10px;padding:8px 12px;
+    background:var(--paper);border:1.5px solid var(--line2);border-radius:18px;
+    box-shadow:var(--shadow-sm);cursor:pointer;
+    transition:transform .12s,border-color .18s,background .18s;
+  }
+  .rcheck:active{transform:scale(.988);border-color:#F7C9BA;background:#FFFCFA}
+  .rcheck-ico{
+    flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+    display:grid;place-items:center;
+    background:var(--coral-soft);border:1px solid #FBD3C8;color:var(--coral-deep);
+    font-size:13px;font-weight:800;line-height:1;
+  }
+  .rcheck-txt{flex:0 0 auto;display:flex;flex-direction:column;gap:2px;line-height:1.05}
+  .rcheck-txt em{font-style:normal;font-size:10px;font-weight:800;color:var(--muted);letter-spacing:-.1px}
+  .rcheck-txt b{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+  .rcheck-dots{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:3.5px;margin-left:auto;min-width:0}
+  .rcheck .stamp{width:16px;height:16px;border-width:1.5px}
+  .rcheck-undo{
+    flex:0 0 auto;padding:6px 10px;border-radius:999px;white-space:nowrap;
+    background:var(--mint-soft);border:1px solid #D6F0E6;color:#3E9C80;
+    font-size:10.5px;font-weight:800;letter-spacing:-.2px;
+  }
+  .rcheck-undo:active{transform:scale(.96);background:#DFF6EE}
 
   /* 카드 배경 테마 고르기 */
   .theme-bar{
@@ -685,6 +712,8 @@
     cycleTarget: 'default',
     pop: null,
     busy: false,
+    checkedId: null,
+    undo: null,
     calYear: null,
     calMonth: null,
     calSel: null
@@ -1014,6 +1043,9 @@
     var stage = $('#stage');
     var left = Math.max(0, ui.queue.length - ui.qIndex);
     var popAt = (ui.pop && card && ui.pop.id === card.id) ? ui.pop.at : -1;
+    /* 카드가 바뀌면 직전 복습 체크 되돌리기는 끝난 것으로 본다 */
+    if(ui.undo && (!card || ui.undo.cardId !== card.id)) ui.undo = null;
+    if(ui.checkedId && (!card || ui.checkedId !== card.id)) ui.checkedId = null;
     $('#progressText').innerHTML = '남은 카드 <b>' + left + '</b>장';
     $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + '장 완료') : '이번 세션 0장';
 
@@ -1025,19 +1057,20 @@
       '<div class="flip-wrap">',
         '<div class="flip-card' + (ui.flipped ? ' flipped' : '') + '" id="flipCard" data-action="flip" role="button" tabindex="0" aria-label="카드를 눌러 앞뒤로 뒤집기">',
           '<div class="face front">',
-            '<div class="face-top"><span class="tag">ENGLISH</span>' + stampsHTML(card.reviews, popAt) + '</div>',
+            '<div class="face-top"><span class="tag">ENGLISH</span></div>',
             '<p class="card-text">' + esc(card.front) + '</p>',
             '<button class="speak-btn" data-action="speak" data-noflip="1" aria-label="영어 발음 듣기">발음 듣기</button>',
             '<span class="flip-hint">카드를 눌러 뜻 보기</span>',
           '</div>',
           '<div class="face back">',
-            '<div class="face-top"><span class="tag mint">한국어</span>' + stampsHTML(card.reviews, popAt) + '</div>',
+            '<div class="face-top"><span class="tag mint">한국어</span></div>',
             '<p class="card-text ko">' + esc(card.back || '—') + '</p>',
             '<span class="flip-hint">다시 눌러 영어로</span>',
           '</div>',
         '</div>',
       '</div>',
-      '<div class="actions' + (ui.flipped ? '' : ' locked') + '">',
+      reviewCheckHTML(card),
+      '<div class="actions' + (ui.flipped || ui.checkedId === card.id ? '' : ' locked') + '">',
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
       '</div>',
@@ -1046,6 +1079,26 @@
         '<button class="link" data-action="archive-current">다 외웠어요 · 숨기기</button>',
       '</div>'
     ].join('');
+  }
+
+  function reviewCheckHTML(card){
+    var n = Math.max(0, Math.floor(Number(card && card.reviews) || 0));
+    var shown = Math.min(n, 12);   /* 12개를 넘으면 숫자로 보여 줌 */
+    var dots = '';
+    for(var i = 0; i < shown; i++){
+      var pop = ui.pop && ui.pop.id === card.id && ui.pop.at === i;
+      dots += '<span class="stamp on' + (pop ? ' pop' : '') + '">✓</span>';
+    }
+    dots += '<span class="stamp" aria-hidden="true"></span>';   /* 다음에 채울 빈 칸 */
+    var undo = (ui.undo && ui.undo.cardId === card.id)
+      ? '<button class="rcheck-undo" data-action="review-undo">되돌리기</button>' : '';
+    return '<div class="rcheck" id="reviewCheck" data-action="review-check" role="button" tabindex="0" ' +
+        'aria-label="복습 체크 · 이 카드 ' + n + '회 · 누르면 복습 1회 체크">' +
+        '<span class="rcheck-ico" aria-hidden="true">＋</span>' +
+        '<span class="rcheck-txt"><em>복습 체크</em><b>' + n + '회</b></span>' +
+        '<span class="rcheck-dots" aria-hidden="true">' + dots + '</span>' +
+        undo +
+      '</div>';
   }
 
   function emptyStudyHTML(){
@@ -1282,6 +1335,7 @@
 
   function setMode(mode){
     ui.mode = mode;
+    clearCheck();
     $all('[data-action="mode"]').forEach(function(b){ b.classList.toggle('on', b.dataset.mode === mode); });
     buildQueue();
     renderStudy();
@@ -1294,7 +1348,9 @@
     if(c){
       c.classList.toggle('flipped', ui.flipped);
       var acts = $('.actions');
-      if(acts) acts.classList.toggle('locked', !ui.flipped);
+      var cc = currentCard();
+      var unlocked = ui.flipped || (cc && ui.checkedId === cc.id);
+      if(acts) acts.classList.toggle('locked', !unlocked);
     }
   }
   function advance(){
@@ -1303,13 +1359,81 @@
     renderStats();
     renderStudy();
   }
+  function clearCheck(){
+    ui.checkedId = null;
+    ui.undo = null;
+  }
+  /* 카드 밖 별도 영역의 복습 체크 — 카드는 뒤집히지 않고, 오늘 복습 1회만 기록 */
+  function reviewCheck(){
+    var card = currentCard();
+    if(!card) return;
+    var key = todayKey();
+    var h = state.studyHistory[key];
+    var t = now();
+    ui.undo = {
+      cardId: card.id,
+      reviews: card.reviews,
+      lastReview: card.lastReview,
+      nextReview: card.nextReview,
+      key: key,
+      had: !!h,
+      done: h ? (h.done || 0) : 0,
+      again: h ? (h.again || 0) : 0,
+      cards: h ? (h.cards || []).slice() : []
+    };
+    card.reviews += 1;
+    card.lastReview = t;
+    card.nextReview = t + intervalMs(card.interval);
+    recordStudy(card.id, 'known');
+    ui.checkedId = card.id;
+    ui.pop = { id: card.id, at: card.reviews - 1 };
+    save(true);
+    renderStats();
+    renderStudy();
+    renderCalendar();
+    toast('복습 1회 체크했어요 · 다음 복습은 ' + nextLabel(card.nextReview));
+    setTimeout(function(){ ui.pop = null; }, 700);
+  }
+  /* 방금 누른 복습 체크 1회 되돌리기 */
+  function reviewUndo(){
+    var u = ui.undo;
+    if(!u) return;
+    var card = cardById(u.cardId);
+    if(card){
+      card.reviews = Math.max(0, Math.floor(Number(u.reviews) || 0));
+      card.lastReview = u.lastReview;
+      card.nextReview = u.nextReview;
+    }
+    var h = state.studyHistory[u.key];
+    if(u.had){
+      if(!h) h = state.studyHistory[u.key] = { done: 0, again: 0, cards: [] };
+      h.done = u.done;
+      h.again = u.again;
+      h.cards = u.cards.slice();
+      if(!h.done && !h.again && !h.cards.length) delete state.studyHistory[u.key];
+    }else{
+      delete state.studyHistory[u.key];
+    }
+    ui.undo = null;
+    ui.pop = null;
+    if(ui.checkedId === u.cardId) ui.checkedId = null;
+    save(true);
+    renderStats();
+    renderStudy();
+    renderCalendar();
+    toast('방금 체크를 되돌렸어요');
+  }
   function grade(knew){
     var card = currentCard();
     if(!card || ui.busy) return;
+    var checked = (ui.checkedId === card.id);
     if(!knew){
-      recordStudy(card.id, 'again');
-      save(true);
-      renderCalendar();
+      clearCheck();
+      if(!checked){
+        recordStudy(card.id, 'again');
+        save(true);
+        renderCalendar();
+      }
       if(ui.queue.length - ui.qIndex <= 1){
         ui.flipped = false;
         var c = $('#flipCard');
@@ -1324,6 +1448,14 @@
       ui.queue.push(card.id);
       ui.flipped = false;
       renderStudy();
+      return;
+    }
+    if(checked){
+      /* 복습 체크로 이미 1회 기록했으니 또 세지 않고 다음 카드로 */
+      clearCheck();
+      ui.queue.splice(ui.qIndex, 1);
+      advance();
+      toast('복습 체크로 기록했어요 · 다음 카드로 넘어갑니다');
       return;
     }
     var t = now();
@@ -2011,6 +2143,8 @@
     }
     if(action === 'grade-known'){ grade(true); return; }
     if(action === 'grade-again'){ grade(false); return; }
+    if(action === 'review-check'){ reviewCheck(); return; }
+    if(action === 'review-undo'){ reviewUndo(); return; }
     if(action === 'archive-current'){
       var c = currentCard();
       if(c) archiveCard(c.id);
@@ -2074,6 +2208,7 @@
 
   document.addEventListener('keydown', function(e){
     if(e.key === 'Enter' && e.target && e.target.id === 'flipCard'){ flip(); }
+    if(e.key === 'Enter' && e.target && e.target.id === 'reviewCheck'){ reviewCheck(); }
     if(e.key === 'Escape'){ closeCycle(); }
   });
 
