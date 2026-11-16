@@ -67,6 +67,9 @@
       box-shadow:0 24px 60px rgba(170,130,100,.18);
       border:1px solid rgba(255,255,255,.9);
     }
+    /* 앱 카드가 52px 작아진 만큼 카드도 같이 줄여 화면 안에 다 들어오게 */
+    .app .flip-wrap{height:clamp(320px,calc(100dvh - 548px),520px)}
+    .app .notecard{height:clamp(330px,calc(100dvh - 495px),640px)}
   }
   /* 배경 장식 없이 깔끔하게 */
 
