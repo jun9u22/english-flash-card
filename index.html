@@ -279,6 +279,29 @@
   .act.known{background:linear-gradient(135deg,#FF9C86,#F2765C);color:#fff;box-shadow:0 8px 20px rgba(242,118,92,.3)}
   .study-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding:0 3px}
   .link{color:var(--muted);font-size:12px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+  /* 남은 카드 줄 오른쪽의 작은 삭제 버튼 — 카드 바로 위라서 스크롤 없이 누를 수 있음 */
+  .prog-right{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+  .stage-del{
+    width:26px;height:26px;border-radius:9px;border:1px solid var(--line2);background:#fff;
+    display:grid;place-items:center;color:#C4796B;transition:transform .12s,background .18s,border-color .18s;
+  }
+  .stage-del svg{width:13px;height:13px;display:block}
+  .stage-del:active{transform:scale(.92)}
+  .stage-del[hidden]{display:none}
+  .stage-del.asking{background:#FDECE6;border-color:#F3C4B8;color:#C2593F}
+  /* 삭제 확인 — 카드 위/목록 안에서 한 번 더 물어보는 작은 띠 */
+  .study-ask{margin:0 2px 8px}
+  .del-ask{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+    background:#FFF4F1;border:1.5px solid #F6D3CC;border-radius:16px;padding:7px 8px 7px 11px;
+  }
+  .del-ask[hidden]{display:none}
+  .del-ask .ask-txt{font-size:12px;font-weight:800;color:#B4553F;letter-spacing:-.3px;min-width:0;line-height:1.35}
+  .del-ask .ask-btns{display:flex;gap:6px;flex:0 0 auto}
+  .del-ask .ask-btns button{border-radius:999px;padding:7px 12px;font-size:11.5px;font-weight:800;letter-spacing:-.2px}
+  .del-ask .ask-go{background:#E4735C;color:#fff;box-shadow:0 4px 10px rgba(228,115,92,.25)}
+  .del-ask .ask-no{background:#fff;border:1px solid var(--line2);color:var(--ink-soft)}
+  .del-ask .ask-btns button:active{transform:scale(.96)}
   .chip{
     display:inline-flex;align-items:center;gap:4px;
     background:#fff;border:1px solid var(--line2);color:var(--ink-soft);
@@ -392,6 +415,8 @@
   .row-actions .icon-btn{width:32px;height:32px;border-radius:12px;border:1px solid var(--line2);background:#fff;display:flex;align-items:center;justify-content:center;color:#A3927F}
   .row-actions .icon-btn svg{width:15px;height:15px;display:block}
   .row-actions .icon-btn:active{transform:scale(.94)}
+  .row-actions .icon-btn.del{color:#C4796B;border-color:#F4D6CF;background:#FFF8F6}
+  .row .del-ask{margin-top:10px}
   .list-empty{text-align:center;color:var(--muted);font-size:12.5px;padding:26px 10px;line-height:1.7}
   .settings .setting-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px dashed var(--line);font-size:13px;font-weight:700;color:var(--ink-soft)}
   .settings .setting-row:last-child{border-bottom:none;padding-bottom:0}
@@ -600,7 +625,19 @@
       </div>
       <div class="progress-line">
         <span id="progressText">남은 카드 <b>0</b>장</span>
-        <span id="sessionText">이번 세션 0장</span>
+        <span class="prog-right">
+          <span id="sessionText">이번 세션 0장</span>
+          <button class="stage-del" id="studyDelBtn" data-action="ask-delete" hidden aria-label="이 카드 지우기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14M9.5 7V4.8h5V7M7 7l.8 12.2h8.4L17 7M10.3 10.6v5.4M13.7 10.6v5.4"/></svg>
+          </button>
+        </span>
+      </div>
+      <div class="del-ask study-ask" id="studyAsk" hidden>
+        <span class="ask-txt" id="studyAskTxt">이 카드를 지울까요?</span>
+        <span class="ask-btns">
+          <button class="ask-no" data-action="cancel-delete">취소</button>
+          <button class="ask-go" data-action="delete-card" id="studyAskGo">삭제</button>
+        </span>
       </div>
       <div class="stage" id="stage"></div>
     </section>
@@ -847,6 +884,7 @@
     busy: false,
     checkedId: null,
     undo: null,
+    delAsk: null,
     calYear: null,
     calMonth: null,
     calSel: null
@@ -995,14 +1033,16 @@
     }
     try{
       var parsed = JSON.parse(raw);
-      var cards = Array.isArray(parsed.cards) ? parsed.cards.map(normalizeCard).filter(Boolean) : [];
+      var hadList = !!parsed && Array.isArray(parsed.cards);
+      var cards = hadList ? parsed.cards.map(normalizeCard).filter(Boolean) : [];
       var def = parsed && parsed.settings && parsed.settings.defaultInterval;
       if(!def || typeof def.value !== 'number' || (def.unit !== 'hour' && def.unit !== 'day')){
         def = { value: 1, unit: 'day' };
       }
       state = {
         version: 2,
-        cards: cards.length ? cards : seedCards(),
+        /* 카드를 다 지워 빈 목록으로 저장된 경우엔 샘플을 되살리지 않는다(지운 상태 유지) */
+        cards: hadList ? cards : seedCards(),
         settings: {
           defaultInterval: { value: Math.max(1, Math.round(def.value)), unit: def.unit },
           theme: themeById(parsed.settings && parsed.settings.theme).id,
@@ -1211,6 +1251,7 @@
     if(tb) tb.hidden = isSpeech();
     $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel();
     $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + unitLabel() + ' 완료') : '이번 세션 0' + unitLabel();
+    renderDeleteControls(card);
 
     if(!card){
       if(ui.speechCard !== null){ ui.speechCard = null; stopTTS(); }
@@ -1266,10 +1307,7 @@
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
       '</div>',
-      '<div class="study-foot">',
-        '<button class="chip" data-action="open-cycle" data-target="' + card.id + '">복습 주기 ' + intervalLabel(card.interval) + '<span class="caret"></span></button>',
-        '<button class="link" data-action="archive-current">다 외웠어요 · 숨기기</button>',
-      '</div>'
+      studyFootHTML(card)
     ].join('');
   }
 
@@ -1300,10 +1338,7 @@
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
       '</div>',
-      '<div class="study-foot">',
-        '<button class="chip" data-action="open-cycle" data-target="' + card.id + '">복습 주기 ' + intervalLabel(card.interval) + '<span class="caret"></span></button>',
-        '<button class="link" data-action="archive-current">다 외웠어요 · 숨기기</button>',
-      '</div>'
+      studyFootHTML(card)
     ].join('');
   }
 
@@ -1335,6 +1370,41 @@
         'id="nextCard" data-action="next-card" aria-label="다음 카드 보기 · 큐에 ' + left + '장">' +
         '<span>다음 카드</span><i class="next-arrow" aria-hidden="true">→</i>' +
       '</button>';
+  }
+
+  /* 공부 화면 지우기 — 남은 카드 줄의 휴지통 버튼 + 바로 아래 확인 띠 */
+  function renderDeleteControls(card){
+    var btn = document.getElementById('studyDelBtn');
+    var ask = document.getElementById('studyAsk');
+    var asking = !!(card && ui.delAsk === card.id);
+    if(btn){
+      btn.hidden = !card;
+      btn.dataset.id = card ? card.id : '';
+      btn.classList.toggle('asking', asking);
+      btn.setAttribute('aria-label', (isSpeech() ? '이 스피치' : '이 카드') + ' 지우기');
+    }
+    if(ask){
+      ask.hidden = !asking;
+      if(asking){
+        $('#studyAskTxt').textContent = '이 ' + nounLabel() + '를 지울까요?';
+        var go = document.getElementById('studyAskGo');
+        if(go) go.dataset.id = card.id;
+      }
+    }
+  }
+
+  /* 카드 발치 — 복습 주기 · 숨기기 (지우기는 남은 카드 줄의 휴지통 버튼) */
+  function studyFootHTML(card){
+    return [
+      '<div class="study-foot">',
+        '<button class="chip" data-action="open-cycle" data-target="' + card.id + '">복습 주기 ' + intervalLabel(card.interval) + '<span class="caret"></span></button>',
+        '<button class="link" data-action="archive-current">다 외웠어요 · 숨기기</button>',
+      '</div>'
+    ].join('');
+  }
+  /* 카드 관리 목록의 삭제 아이콘 */
+  function trashIcon(){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 7h14M9.5 7V4.8h5V7M7 7l.8 12.2h8.4L17 7M10.3 10.6v5.4M13.7 10.6v5.4"/></svg>';
   }
 
   function emptyStudyHTML(){
@@ -1455,15 +1525,25 @@
       }else{
         meta += '<span class="meta-chip">보관함' + (c.archivedAt ? ' · ' + fmtMD(c.archivedAt) : '') + '</span>';
       }
+      var sp = catOf(c) === 'speech';
+      var kind = sp ? '스피치' : '카드';
+      var delBtn = '<button class="icon-btn del" data-action="ask-delete" data-id="' + c.id + '" aria-label="' + kind + ' 지우기">' + trashIcon() + '</button>';
       var actions;
       if(c.archived){
-        actions = '<button class="chip mint" data-action="restore-card" data-id="' + c.id + '">다시 공부</button>' +
-                  '<button class="icon-btn" data-action="delete-card" data-id="' + c.id + '" aria-label="카드 지우기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 7h14M9.5 7V4.8h5V7M7 7l.8 12.2h8.4L17 7M10.3 10.6v5.4M13.7 10.6v5.4"/></svg></button>';
+        actions = '<button class="chip mint" data-action="restore-card" data-id="' + c.id + '">다시 공부</button>' + delBtn;
       }else{
         actions = '<button class="chip" data-action="open-cycle" data-target="' + c.id + '">' + intervalLabel(c.interval) + '<span class="caret"></span></button>' +
-                  '<button class="icon-btn" data-action="archive-card" data-id="' + c.id + '" aria-label="카드 숨기기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 10.5h16M10 14.5h4"/></svg></button>';
+                  '<button class="icon-btn" data-action="archive-card" data-id="' + c.id + '" aria-label="카드 숨기기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 10.5h16M10 14.5h4"/></svg></button>' + delBtn;
       }
-      var sp = catOf(c) === 'speech';
+      var ask = (ui.delAsk === c.id)
+        ? '<div class="del-ask" id="delAsk">' +
+            '<span class="ask-txt">이 ' + kind + '를 지울까요?</span>' +
+            '<span class="ask-btns">' +
+              '<button class="ask-no" data-action="cancel-delete">취소</button>' +
+              '<button class="ask-go" data-action="delete-card" data-id="' + c.id + '">삭제</button>' +
+            '</span>' +
+          '</div>'
+        : '';
       var frontHTML = sp
         ? (esc(c.title || cardLabel(c, 30) || '스피치') + '<span class="row-chip">스피치</span>')
         : esc(c.front);
@@ -1479,6 +1559,7 @@
           '</div>' +
           '<div class="row-actions">' + actions + '</div>' +
         '</div>' +
+        ask +
       '</div>';
     }).join('');
   }
@@ -1589,6 +1670,7 @@
   /* ---------- 화면 전환 ---------- */
   function switchTab(tab){
     ui.tab = tab;
+    ui.delAsk = null;
     $all('.view').forEach(function(v){ v.classList.toggle('active', v.id === 'view-' + tab); });
     $all('.tabbar button').forEach(function(b){ b.classList.toggle('on', b.dataset.tab === tab); });
     var cb = document.getElementById('catBar');
@@ -1609,6 +1691,7 @@
 
   function setMode(mode){
     ui.mode = mode;
+    ui.delAsk = null;
     clearCheck();
     $all('[data-action="mode"]').forEach(function(b){ b.classList.toggle('on', b.dataset.mode === mode); });
     buildQueue();
@@ -1620,6 +1703,7 @@
     if(cat !== 'word' && cat !== 'speech') return;
     if(ui.cat === cat) return;
     ui.cat = cat;
+    ui.delAsk = null;
     state.settings.category = cat;
     save(true);
     stopTTS();
@@ -1827,16 +1911,26 @@
     render();
     toast('다시 공부할 카드로 되돌렸어요');
   }
+  /* 카드/스피치 완전 삭제 — 확인은 화면 안에서 받고, 지운 뒤 바로 다음 카드로 */
   function deleteCard(id){
     var card = cardById(id);
     if(!card) return;
-    if(!window.confirm('이 ' + nounLabel() + '를 완전히 지울까요?\n\n' + snippet(card.title || card.front, 60) + '\n(되돌릴 수 없어요)')){
-      return;
-    }
+    var kind = catOf(card) === 'speech' ? '스피치' : '카드';
     state.cards = state.cards.filter(function(c){ return c.id !== id; });
+    ui.delAsk = null;
+    ui.pop = null;
+    ui.flipped = false;
+    if(ui.checkedId === id) ui.checkedId = null;
+    if(ui.undo && ui.undo.cardId === id) ui.undo = null;
+    if(ui.speechCard === id){ ui.speechCard = null; stopTTS(); }
+    var at = ui.queue.indexOf(id);
+    if(at >= 0){
+      ui.queue.splice(at, 1);
+      if(at < ui.qIndex) ui.qIndex--;
+    }
     save(true);
     render();
-    toast('카드를 지웠어요');
+    toast(kind + '를 지웠어요');
   }
 
   /* ---------- 발음 듣기 ---------- */
@@ -2635,6 +2729,18 @@
     }
     if(action === 'archive-card'){ archiveCard(el.dataset.id); return; }
     if(action === 'restore-card'){ restoreCard(el.dataset.id); return; }
+    if(action === 'ask-delete'){
+      ui.delAsk = el.dataset.id;
+      renderStudy();
+      renderManage();
+      return;
+    }
+    if(action === 'cancel-delete'){
+      ui.delAsk = null;
+      renderStudy();
+      renderManage();
+      return;
+    }
     if(action === 'delete-card'){ deleteCard(el.dataset.id); return; }
     if(action === 'open-cycle'){
       openCycle(el.dataset.target);
@@ -2674,7 +2780,10 @@
   document.addEventListener('keydown', function(e){
     if(e.key === 'Enter' && e.target && e.target.id === 'flipCard'){ flip(); }
     if(e.key === 'Enter' && e.target && e.target.id === 'reviewCheck'){ reviewCheck(); }
-    if(e.key === 'Escape'){ closeCycle(); }
+    if(e.key === 'Escape'){
+      if(ui.delAsk){ ui.delAsk = null; renderStudy(); renderManage(); return; }
+      closeCycle();
+    }
   });
 
   $('#fileInput').addEventListener('change', function(e){
