@@ -71,16 +71,16 @@
   /* 배경 장식 없이 깔끔하게 */
 
   /* 상단 */
-  .topbar{position:relative;z-index:2;padding:22px 20px 8px;flex:0 0 auto}
+  .topbar{position:relative;z-index:2;padding:15px 18px 6px;flex:0 0 auto}
   .brand{display:flex;align-items:center;gap:9px}
-  .brand h1{font-size:20px;letter-spacing:-.6px;font-weight:800}
+  .brand h1{font-size:18.5px;letter-spacing:-.6px;font-weight:800}
   .brand .sub{font-size:11.5px;color:var(--muted);margin-left:auto;background:#fff;border:1px solid var(--line);padding:4px 9px;border-radius:999px}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
   .stat{
     background:var(--paper);border:1px solid var(--line);border-radius:18px;
-    padding:9px 6px 8px;text-align:center;box-shadow:var(--shadow-sm);
+    padding:7px 6px 6px;text-align:center;box-shadow:var(--shadow-sm);
   }
-  .stat b{display:block;font-size:17px;letter-spacing:-.3px}
+  .stat b{display:block;font-size:16px;letter-spacing:-.3px}
   .stat span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
   .stat.due b{color:var(--coral-deep)}
   .stat.all b{color:#B98A5E}
@@ -90,7 +90,9 @@
     margin:10px 2px 0;padding:9px 12px;border-radius:14px;font-size:11px;line-height:1.55;
     background:#FFF4E4;border:1px solid #F5DFC0;color:#8A6A34;font-weight:600;
   }
-  main{position:relative;z-index:2;flex:1 1 auto;padding:14px 18px 96px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  main{position:relative;z-index:2;flex:1 1 auto;padding:10px 16px 0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:block}
+  /* 탭바에 가리지 않을 만큼의 아래 여유 — 진짜 요소로 두어 스크롤이 끝까지 닿게 */
+  .main-pad{height:78px}
   .view{display:none;animation:fadeUp .28s ease both}
   .view.active{display:block}
   @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -98,7 +100,7 @@
   /* 공부 화면 */
   .seg{display:flex;gap:6px;background:rgba(255,255,255,.8);border:1px solid var(--line);padding:5px;border-radius:999px;box-shadow:var(--shadow-sm)}
   .seg button{
-    flex:1;padding:9px 6px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted);
+    flex:1;padding:8px 6px;border-radius:999px;font-size:13px;font-weight:700;color:var(--muted);
     transition:.2s;white-space:nowrap;
   }
   .seg button.on{background:var(--ink);color:#fff;box-shadow:0 4px 12px rgba(76,63,55,.22)}
@@ -106,13 +108,14 @@
   .seg button.on.mint{background:linear-gradient(135deg,#77D6BA,#4FB795);box-shadow:0 4px 12px rgba(79,183,149,.3)}
   .seg button small{font-weight:700;opacity:.85;font-size:11px}
 
-  .progress-line{display:flex;justify-content:space-between;align-items:center;margin:14px 4px 9px;font-size:12.5px;color:var(--muted)}
+  .progress-line{display:flex;justify-content:space-between;align-items:center;margin:9px 4px 6px;font-size:12.5px;color:var(--muted)}
   .progress-line b{color:var(--coral-deep);font-size:14px}
 
   .stage{position:relative;z-index:1}
-  .flip-wrap{perspective:1400px;height:clamp(200px,calc(100dvh - 578px),364px);margin:0 0 10px}
+  /* 카드 크기 확대 — 화면에 남는 높이를 최대한 쓰고, 좁은 화면에서도 320px 아래로는 내려가지 않음 */
+  .flip-wrap{position:relative;perspective:1400px;height:clamp(320px,calc(100dvh - 496px),520px);flex:0 0 auto;margin:0 0 8px}
   .flip-card{
-    position:relative;width:100%;height:100%;
+    position:absolute;inset:0;width:100%;height:100%;
     transform-style:preserve-3d;
     transition:transform .58s cubic-bezier(.38,.08,.25,1);
     border-radius:var(--radius);
@@ -224,26 +227,32 @@
   .next-card.alone{color:#B6A99C;border-style:dashed;box-shadow:none}
 
   /* 카드 배경 테마 고르기 */
+  .theme-bar[hidden]{display:none}
   .theme-bar{
-    display:flex;align-items:center;gap:8px;margin:12px 2px 0;
+    display:flex;align-items:center;gap:8px;margin:7px 2px 0;
     background:rgba(255,255,255,.76);border:1px solid var(--line);border-radius:16px;
-    padding:6px 9px 6px 11px;box-shadow:var(--shadow-sm);
+    padding:4px 8px 4px 10px;box-shadow:var(--shadow-sm);
   }
-  .theme-bar .tl{display:flex;flex-direction:column;gap:1px;font-size:9.5px;font-weight:800;color:var(--muted);white-space:nowrap}
-  .theme-bar .tl b{font-size:11.5px;color:var(--ink);font-weight:800;letter-spacing:-.2px}
-  .theme-swatches{display:flex;gap:6px;margin-left:auto}
+  .theme-bar .tl{display:flex;flex-direction:column;gap:0;font-size:9px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .theme-bar .tl b{font-size:11px;color:var(--ink);font-weight:800;letter-spacing:-.2px}
+  .theme-swatches{display:flex;gap:5px;margin-left:auto}
   .swatch{
-    width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(120,94,72,.34);
+    width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(120,94,72,.34);
     position:relative;transition:transform .15s, box-shadow .15s;outline:none;
   }
   .swatch:active{transform:scale(.94)}
   .swatch.on{box-shadow:0 0 0 2px #fff, 0 0 0 3.5px var(--coral);transform:scale(1.03)}
   .swatch.on::after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#6B5A4C}
+  /* 긴 문장도 위아래로 잘리지 않게 — 넘치면 스크롤, 짧으면 가운데 */
+  .card-body{
+    flex:1 1 auto;min-height:0;display:flex;flex-direction:column;
+    overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+    padding:8px 2px;
+  }
   .card-text{
-    flex:1 1 auto;display:flex;align-items:center;justify-content:center;
-    text-align:center;padding:10px 2px;
+    margin:auto 0;width:100%;text-align:center;
     font-size:clamp(25px,7.6vw,33px);line-height:1.34;font-weight:800;letter-spacing:-.8px;
-    color:#332A22;overflow:auto;overflow-wrap:anywhere;word-break:keep-all;
+    color:#332A22;overflow-wrap:anywhere;word-break:keep-all;
   }
   .card-text.ko{font-size:clamp(22px,6.6vw,29px);font-weight:700;letter-spacing:-.4px;color:#2F3A34}
   .speak-btn{
@@ -392,11 +401,11 @@
     background:rgba(255,253,249,.92);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
     border-top:1px solid var(--line);
-    padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+    padding:6px 10px calc(6px + env(safe-area-inset-bottom));
   }
   .tabbar button{
-    display:flex;flex-direction:column;align-items:center;gap:3px;
-    padding:6px 0 5px;border-radius:16px;font-size:10.5px;font-weight:800;color:#B7A79B;transition:.18s;
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:5px 0 4px;border-radius:16px;font-size:10.5px;font-weight:800;color:#B7A79B;transition:.18s;
   }
   .tabbar button .t-ico{display:grid;place-items:center;line-height:1;opacity:.7;transition:.18s;color:#A8988B}
   .tabbar button .t-ico svg{width:22px;height:22px;display:block}
@@ -494,6 +503,57 @@
   .custom-row .btn{flex:0 0 auto;padding:0 16px;min-height:44px}
   .modal-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.55}
 
+  /* 카테고리 전환 (단어카드 / 스피치) */
+  .catbar{
+    display:flex;gap:5px;margin-top:9px;padding:3px;
+    background:rgba(255,255,255,.84);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);
+  }
+  .catbar[hidden]{display:none}
+  .catbar button{
+    flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:5px;
+    padding:8px 6px;border-radius:13px;font-size:13px;font-weight:800;letter-spacing:-.3px;
+    color:var(--muted);transition:.18s;white-space:nowrap;
+  }
+  .catbar button small{font-size:10.5px;font-weight:800;opacity:.7;color:inherit}
+  .catbar button.on{background:linear-gradient(135deg,#FFB49E,#F2765C);color:#fff;box-shadow:0 5px 14px rgba(242,118,92,.26)}
+  .catbar button[data-cat="speech"].on{background:linear-gradient(135deg,#7FC5E8,#4C9BC7);box-shadow:0 5px 14px rgba(76,155,199,.26)}
+
+  /* 스피치 — 줄노트 카드 */
+  .notecard{
+    position:relative;flex:0 0 auto;height:clamp(330px,calc(100dvh - 443px),640px);display:flex;flex-direction:column;
+    background:#FFFDF6;border:1px solid #E7DBC7;border-radius:22px;overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  .note-head{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:11px 12px 7px 14px;min-width:0}
+  .note-head .tag.speech{color:#2F7093;background:#EAF6FC;border-color:#CFE8F5;letter-spacing:.6px}
+  .note-title{flex:1 1 auto;min-width:0;font-size:13px;font-weight:800;letter-spacing:-.2px;color:#4A4038;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .note-side{flex:0 0 auto;display:flex;gap:3px;background:#FBF1E2;border:1px solid #EFE1CB;border-radius:999px;padding:3px}
+  .note-side button{padding:6px 10px;border-radius:999px;font-size:11.5px;font-weight:800;color:#9C8B77;white-space:nowrap;transition:.15s}
+  .note-side button.on{background:#fff;color:#2F7093;box-shadow:0 2px 6px rgba(150,120,90,.18)}
+  .note-body{
+    flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:8px 16px 30px 40px;
+    font-size:16.5px;line-height:32px;letter-spacing:-.1px;color:#3B332B;
+    white-space:pre-wrap;overflow-wrap:anywhere;word-break:keep-all;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0) 0 29px, #F5CBC2 29px, #F5CBC2 30px, rgba(255,255,255,0) 30px),
+      repeating-linear-gradient(180deg, #FFFDF6 0 31px, #E6DAC6 31px, #E6DAC6 32px);
+    background-attachment:local, local;
+    background-origin:padding-box, padding-box;
+  }
+  .note-body.ko{font-size:15.5px;color:#37413C}
+  .note-foot{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 12px 9px;border-top:1px solid #F1E4D1;background:#FFF9EE}
+  .tts-btn{
+    flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:6px;
+    padding:11px 12px;border-radius:14px;background:#fff;border:1.5px solid #DCE9F0;color:#3E7C9C;
+    font-size:13px;font-weight:800;box-shadow:var(--shadow-sm);
+  }
+  .tts-btn:active{transform:scale(.98)}
+  .tts-btn.playing{background:#EAF6FC;border-color:#BFE0EF;color:#2F7093}
+  .note-meta{flex:0 0 auto;font-size:10.5px;font-weight:800;color:#B4A491;white-space:nowrap}
+
+  .row-front .row-chip{font-size:10px;font-weight:800;color:#2F7093;background:#EAF6FC;border:1px solid #CFE8F5;padding:2px 7px;border-radius:999px;margin-left:5px;vertical-align:1px}
+
   .toast{
     position:absolute;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));
     transform:translate(-50%,12px);z-index:60;
@@ -511,6 +571,10 @@
     <div class="brand">
       <h1>영어 단어카드</h1>
       <span class="sub" id="saveState">자동 저장</span>
+    </div>
+    <div class="catbar" id="catBar" role="tablist" aria-label="공부 종류">
+      <button class="on" data-action="cat" data-cat="word" role="tab">단어카드 <small id="catWordN">0</small></button>
+      <button data-action="cat" data-cat="speech" role="tab">스피치 <small id="catSpeechN">0</small></button>
     </div>
     <div class="stats">
       <div class="stat due"><b id="statDue">0</b><span>오늘 복습</span></div>
@@ -553,11 +617,12 @@
         <div class="cal-foot"><button data-action="cal-today">오늘로 돌아가기</button></div>
       </div>
       <div class="cal-summary" id="calSummary"></div>
-      <div class="cal-legend"><span class="cdot"></span>동그라미가 있는 날 = 그날 단어카드를 복습한 날</div>
+      <div class="cal-legend"><span class="cdot"></span>동그라미가 있는 날 = 그날 공부(복습)한 날</div>
     </section>
 
     <!-- ③ 카드 추가 -->
     <section class="view" id="view-add">
+      <div id="addWordPanels">
       <div class="panel">
         <h2>카드 하나씩 추가</h2>
         <p class="desc">앞면엔 영어, 뒷면엔 한글을 넣어 주세요. 마이크 버튼을 누르고 말하면 자동으로 적혀요.</p>
@@ -601,6 +666,48 @@
         <p class="hint">지원 형식 · <b>apple - 사과</b> / <b>How are you? : 잘 지내?</b> / 탭·쉼표 구분 / 영어 줄과 한글 줄 번갈아 / CSV 파일 / 한글 <b>.hwpx</b></p>
         <div id="bulkPreview" class="preview" hidden></div>
       </div>
+      </div>
+
+      <div id="addSpeechPanel" hidden>
+        <div class="panel">
+          <h2>스피치 지문 넣기</h2>
+          <p class="desc">5분 스피치 분량의 영어 지문과 한글 해석을 넣으면 줄노트 카드가 돼요. 붙여넣기·마이크·텍스트 파일 모두 된다요.</p>
+
+          <div class="field">
+            <div class="field-label"><span>제목 (안 써도 돼요)</span><span class="lang">TITLE</span></div>
+            <input type="text" id="speechTitle" placeholder="예: My Morning Routine">
+          </div>
+
+          <div class="field">
+            <div class="field-label"><span>앞면 · 영어 지문</span><span class="lang">ENGLISH</span></div>
+            <div class="input-row">
+              <textarea id="speechFront" rows="9" placeholder="영어 스피치 지문을 통째로 붙여넣으세요."></textarea>
+              <button class="mic" data-action="voice" data-lang="en-US" data-target="speechFront" aria-label="영어 음성 입력"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></svg></button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label"><span>뒷면 · 한글 해석</span><span class="lang ko">한국어</span></div>
+            <div class="input-row">
+              <textarea id="speechBack" rows="8" placeholder="같은 내용의 한글 해석을 넣으세요."></textarea>
+              <button class="mic" data-action="voice" data-lang="ko-KR" data-target="speechBack" aria-label="한국어 음성 입력"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></svg></button>
+            </div>
+          </div>
+
+          <div class="file-row">
+            <button class="btn ghost small" data-action="speech-file" data-target="speechFront">영어 지문 파일</button>
+            <button class="btn ghost small" data-action="speech-file" data-target="speechBack">한글 해석 파일</button>
+          </div>
+          <input type="file" id="speechFileFront" accept=".txt,.md,text/plain" hidden>
+          <input type="file" id="speechFileBack" accept=".txt,.md,text/plain" hidden>
+
+          <div class="save-row">
+            <button class="btn" data-action="save-speech">이 스피치 저장하기</button>
+          </div>
+          <p class="hint">지금 <b id="speechCount">0단어</b> · 영어 650단어 안팎이면 약 5분 분량이에요. 줄노트 카드로 저장돼요.</p>
+          <div class="notice" id="voiceNotice2" hidden></div>
+        </div>
+      </div>
     </section>
 
     <!-- ④ 카드 관리 / 보관함 -->
@@ -643,6 +750,7 @@
         </div>
       </div>
     </section>
+    <div class="main-pad" aria-hidden="true"></div>
   </main>
 
   <nav class="tabbar">
@@ -721,7 +829,10 @@
   var ui = {
     tab: 'study',
     mode: 'due',
+    cat: 'word',
     flipped: false,
+    speechSide: 'en',
+    speechCard: null,
     queue: [],
     qIndex: 0,
     sessionDone: 0,
@@ -800,6 +911,8 @@
     return SAMPLES.map(function(p, i){
       return {
         id: uid(),
+        category: 'word',
+        title: '',
         front: p[0],
         back: p[1],
         interval: { value: 1, unit: 'day' },
@@ -816,7 +929,7 @@
     return {
       version: 2,
       cards: seedCards(),
-      settings: { defaultInterval: { value: 1, unit: 'day' }, theme: 'beige' },
+      settings: { defaultInterval: { value: 1, unit: 'day' }, theme: 'beige', category: 'word' },
       studyHistory: {}
     };
   }
@@ -852,6 +965,8 @@
     var nr = Number(raw.nextReview);
     return {
       id: typeof raw.id === 'string' && raw.id ? raw.id : uid(),
+      category: raw.category === 'speech' ? 'speech' : 'word',
+      title: String(raw.title == null ? '' : raw.title).trim(),
       front: front,
       back: back,
       interval: iv,
@@ -887,7 +1002,8 @@
         cards: cards.length ? cards : seedCards(),
         settings: {
           defaultInterval: { value: Math.max(1, Math.round(def.value)), unit: def.unit },
-          theme: themeById(parsed.settings && parsed.settings.theme).id
+          theme: themeById(parsed.settings && parsed.settings.theme).id,
+          category: (parsed.settings && parsed.settings.category === 'speech') ? 'speech' : 'word'
         },
         studyHistory: normalizeHistory(parsed.studyHistory)
       };
@@ -999,16 +1115,33 @@
   }
 
   /* ---------- 카드 계산 ---------- */
-  function activeCards(){ return state.cards.filter(function(c){ return !c.archived; }); }
-  function archivedCards(){ return state.cards.filter(function(c){ return c.archived; }); }
+  function catOf(c){ return c && c.category === 'speech' ? 'speech' : 'word'; }
+  function cardsIn(cat){ return state.cards.filter(function(c){ return catOf(c) === cat; }); }
+  function activeIn(cat){ return cardsIn(cat).filter(function(c){ return !c.archived; }); }
+  function activeCards(){ return activeIn(ui.cat); }
+  function archivedCards(){ return cardsIn(ui.cat).filter(function(c){ return c.archived; }); }
   function dueCards(){
     var t = now();
     return activeCards().filter(function(c){ return c.nextReview <= t; });
   }
   function totalReviews(){
-    return state.cards.reduce(function(s, c){ return s + c.reviews; }, 0);
+    return cardsIn(ui.cat).reduce(function(s, c){ return s + c.reviews; }, 0);
   }
   function cardById(id){ return state.cards.find(function(c){ return c.id === id; }) || null; }
+  /* 카드 이름 — 스피치는 제목, 없으면 지문 앞부분 */
+  function cardLabel(c, max){
+    if(!c) return '';
+    var s = String(c.title || c.front || '').replace(/\s+/g, ' ').trim();
+    max = max || 36;
+    return s.length > max ? s.slice(0, max) + '…' : s;
+  }
+  function isSpeech(){ return ui.cat === 'speech'; }
+  function unitLabel(){ return isSpeech() ? '개' : '장'; }
+  function nounLabel(){ return isSpeech() ? '스피치' : '카드'; }
+  function countWords(s){
+    var m = String(s || '').match(/[A-Za-z][A-Za-z'’-]*/g);
+    return m ? m.length : 0;
+  }
 
   /* ---------- 화면 렌더 ---------- */
   function renderStats(){
@@ -1021,9 +1154,16 @@
     $('#segFree').textContent = act;
     $('#segArchive').textContent = archivedCards().length;
     $('#manageCount').textContent = '공부 중 ' + act + ' · 보관함 ' + archivedCards().length;
+    var wEl = document.getElementById('catWordN');
+    var sEl = document.getElementById('catSpeechN');
+    if(wEl) wEl.textContent = activeIn('word').length;
+    if(sEl) sEl.textContent = activeIn('speech').length;
+    $all('[data-action="cat"]').forEach(function(b){ b.classList.toggle('on', b.dataset.cat === ui.cat); });
     var dl = intervalLabel(state.settings.defaultInterval);
     $('#addDefaultCycle').textContent = dl;
     $('#defaultCycleChip').innerHTML = dl + '<span class="caret"></span>';
+    var si = document.getElementById('searchInput');
+    if(si) si.placeholder = isSpeech() ? '제목·지문으로 스피치 찾기' : '영어나 한글로 카드 찾기';
   }
 
   function buildQueue(){
@@ -1061,35 +1201,99 @@
     var card = currentCard();
     var stage = $('#stage');
     var left = Math.max(0, ui.queue.length - ui.qIndex);
-    var popAt = (ui.pop && card && ui.pop.id === card.id) ? ui.pop.at : -1;
     /* 카드가 바뀌면 직전 복습 체크 되돌리기는 끝난 것으로 본다 */
     if(ui.undo && (!card || ui.undo.cardId !== card.id)) ui.undo = null;
     if(ui.checkedId && (!card || ui.checkedId !== card.id)) ui.checkedId = null;
-    $('#progressText').innerHTML = '남은 카드 <b>' + left + '</b>장';
-    $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + '장 완료') : '이번 세션 0장';
+    var tb = $('.theme-bar');
+    if(tb) tb.hidden = isSpeech();
+    $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel();
+    $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + unitLabel() + ' 완료') : '이번 세션 0' + unitLabel();
 
     if(!card){
+      if(ui.speechCard !== null){ ui.speechCard = null; stopTTS(); }
       stage.innerHTML = emptyStudyHTML();
       return;
     }
-    stage.innerHTML = [
+    if(isSpeech()){
+      if(ui.speechCard !== card.id){ ui.speechCard = card.id; ui.speechSide = 'en'; stopTTS(); }
+      stage.innerHTML = speechHTML(card);
+      return;
+    }
+    ui.speechCard = null;
+    stage.innerHTML = wordHTML(card);
+    fitCardTexts();
+  }
+
+  /* 긴 문장이 카드 안에서 위아래로 잘리지 않도록 글자 크기를 줄여 맞춘다 */
+  function fitCardTexts(){
+    var bodies = $all('.card-body');
+    bodies.forEach(function(body){
+      var el = body.querySelector('.card-text');
+      if(!el) return;
+      el.style.fontSize = '';
+      var base = parseFloat(window.getComputedStyle(el).fontSize) || 30;
+      var size = base, guard = 0;
+      while(body.scrollHeight > body.clientHeight + 1 && size > 17 && guard < 40){
+        size = Math.max(17, size - 1.5);
+        el.style.fontSize = size.toFixed(1) + 'px';
+        guard++;
+      }
+    });
+  }
+
+  function wordHTML(card){
+    return [
       '<div class="flip-wrap">',
         '<div class="flip-card' + (ui.flipped ? ' flipped' : '') + '" id="flipCard" data-action="flip" role="button" tabindex="0" aria-label="카드를 눌러 앞뒤로 뒤집기">',
           '<div class="face front">',
             '<div class="face-top"><span class="tag">ENGLISH</span></div>',
-            '<p class="card-text">' + esc(card.front) + '</p>',
+            '<div class="card-body"><p class="card-text">' + esc(card.front) + '</p></div>',
             '<button class="speak-btn" data-action="speak" data-noflip="1" aria-label="영어 발음 듣기">발음 듣기</button>',
             '<span class="flip-hint">카드를 눌러 뜻 보기</span>',
           '</div>',
           '<div class="face back">',
             '<div class="face-top"><span class="tag mint">한국어</span></div>',
-            '<p class="card-text ko">' + esc(card.back || '—') + '</p>',
+            '<div class="card-body"><p class="card-text ko">' + esc(card.back || '—') + '</p></div>',
             '<span class="flip-hint">다시 눌러 영어로</span>',
           '</div>',
         '</div>',
       '</div>',
       '<div class="rcheck-row">', reviewCheckHTML(card), nextCardHTML(card), '</div>',
       '<div class="actions' + (ui.flipped || ui.checkedId === card.id ? '' : ' locked') + '">',
+        '<button class="act again" data-action="grade-again">다시 볼래요</button>',
+        '<button class="act known" data-action="grade-known">외웠어요</button>',
+      '</div>',
+      '<div class="study-foot">',
+        '<button class="chip" data-action="open-cycle" data-target="' + card.id + '">복습 주기 ' + intervalLabel(card.interval) + '<span class="caret"></span></button>',
+        '<button class="link" data-action="archive-current">다 외웠어요 · 숨기기</button>',
+      '</div>'
+    ].join('');
+  }
+
+  /* 스피치 — 줄노트 카드. 지문을 스크롤하다 실수로 뒤집히지 않도록 위의 영어/한글 버튼으로만 전환 */
+  function speechHTML(card){
+    var side = ui.speechSide === 'ko' ? 'ko' : 'en';
+    var body = side === 'ko' ? (card.back || '—') : (card.front || '—');
+    var wc = countWords(card.front);
+    var mins = Math.max(1, Math.round(wc / 130));
+    return [
+      '<div class="notecard">',
+        '<div class="note-head">',
+          '<span class="tag speech">SPEECH</span>',
+          '<span class="note-title">' + esc(cardLabel(card, 24) || '제목 없음') + '</span>',
+          '<span class="note-side">',
+            '<button class="' + (side === 'en' ? 'on' : '') + '" data-action="speech-side" data-side="en" aria-pressed="' + (side === 'en') + '">영어</button>',
+            '<button class="' + (side === 'ko' ? 'on' : '') + '" data-action="speech-side" data-side="ko" aria-pressed="' + (side === 'ko') + '">한글</button>',
+          '</span>',
+        '</div>',
+        '<div class="note-body ' + side + '" id="noteBody">' + esc(body) + '</div>',
+        '<div class="note-foot">',
+          '<button class="tts-btn' + (tts.on ? ' playing' : '') + '" id="ttsBtn" data-action="speech-tts">' + (tts.on ? '■ 멈추기' : '▶ 처음부터 듣기') + '</button>',
+          '<span class="note-meta">' + wc + '단어 · 약 ' + mins + '분</span>',
+        '</div>',
+      '</div>',
+      '<div class="rcheck-row">', reviewCheckHTML(card), nextCardHTML(card), '</div>',
+      '<div class="actions' + (side === 'ko' || ui.checkedId === card.id ? '' : ' locked') + '">',
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
       '</div>',
@@ -1134,6 +1338,15 @@
     var act = activeCards().length;
     var due = dueCards().length;
     if(act === 0){
+      if(isSpeech()){
+        return '<div class="empty">' +
+          '<span class="empty-mark">+</span>' +
+          '<h3>아직 스피치가 없어요</h3>' +
+          '<p>5분 스피치 지문을 영어·한글로 넣으면<br>줄노트 카드로 만들어 드려요.</p>' +
+          '<div class="empty-actions">' +
+            '<button class="btn" data-action="tab" data-tab="add">스피치 넣기</button>' +
+          '</div></div>';
+      }
       return '<div class="empty">' +
         '<span class="empty-mark">+</span>' +
         '<h3>아직 카드가 없어요</h3>' +
@@ -1146,7 +1359,7 @@
       return '<div class="empty">' +
         '<span class="empty-mark">✓</span>' +
         '<h3>오늘 복습은 다 끝났어요!</h3>' +
-        '<p>공부 중인 카드 ' + act + '장이 다음 순서를 기다리고 있어요.<br>지금 더 보고 싶으면 자유 복습으로 이어갈 수 있어요.</p>' +
+        '<p>' + nounLabel() + ' ' + act + unitLabel() + '이 다음 순서를 기다리고 있어요.<br>지금 더 보고 싶으면 자유 복습으로 이어가면 돼요.</p>' +
         '<div class="empty-actions">' +
           '<button class="btn mint" data-action="mode" data-mode="free">자유 복습 시작</button>' +
           '<button class="btn ghost" data-action="tab" data-tab="manage">카드 관리</button>' +
@@ -1155,7 +1368,7 @@
     return '<div class="empty">' +
       '<span class="empty-mark">✓</span>' +
       '<h3>이번 복습을 끝냈어요!</h3>' +
-      '<p>' + ui.sessionDone + '장을 봤어요. 수고했어요!</p>' +
+      '<p>' + ui.sessionDone + unitLabel() + '을 봤어요. 수고했어요!</p>' +
       '<div class="empty-actions">' +
         '<button class="btn mint" data-action="restart-free">한 번 더 (섞어서)</button>' +
         '<button class="btn ghost" data-action="tab" data-tab="add">카드 추가</button>' +
@@ -1164,20 +1377,32 @@
 
   function renderAdd(){
     /* 음성 인식 지원 여부 안내 */
+    var speechOn = isSpeech();
+    var wp = document.getElementById('addWordPanels');
+    var sp = document.getElementById('addSpeechPanel');
+    if(wp) wp.hidden = speechOn;
+    if(sp) sp.hidden = !speechOn;
+
     var notice = $('#voiceNotice');
+    var notice2 = $('#voiceNotice2');
     var secure = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if(!SR){
-      notice.hidden = false;
-      notice.innerHTML = '<b>이 브라우저에서는 음성 입력을 쓸 수 없어요.</b><br>' +
-        '마이크 버튼 대신 직접 입력해 주세요. (아이폰 사파리·크롬·삼성 인터넷 최신 버전에서는 음성 입력이 돼요.)';
-    }else if(!secure){
-      notice.hidden = false;
-      notice.innerHTML = '<b>음성 입력은 https 주소에서만 동작해요.</b><br>' +
-        '지금은 직접 입력으로 카드를 만들 수 있어요.';
-    }else{
-      notice.hidden = true;
-      notice.innerHTML = '';
+    function fillNotice(el){
+      if(!el) return;
+      if(!SR){
+        el.hidden = false;
+        el.innerHTML = '<b>이 브라우저에서는 음성 입력을 쓸 수 없어요.</b><br>' +
+          '마이크 버튼 대신 직접 입력해 주세요. (아이폰 사파리·크롬·삼성 인터넷 최신 버전에서는 음성 입력이 돼요.)';
+      }else if(!secure){
+        el.hidden = false;
+        el.innerHTML = '<b>음성 입력은 https 주소에서만 동작해요.</b><br>' +
+          '지금은 직접 입력으로 카드를 만들 수 있어요.';
+      }else{
+        el.hidden = true;
+        el.innerHTML = '';
+      }
     }
+    fillNotice(notice);
+    fillNotice(notice2);
   }
 
   function nextChipClass(card){
@@ -1186,12 +1411,17 @@
     return 'meta-chip';
   }
 
+  function snippet(s, n){
+    var t = String(s || '').replace(/\s+/g, ' ').trim();
+    return t.length > (n || 80) ? t.slice(0, n || 80) + '…' : t;
+  }
+
   function renderManage(){
     var list = ui.manageSeg === 'archive' ? archivedCards() : activeCards();
     var q = ui.search.trim().toLowerCase();
     if(q){
       list = list.filter(function(c){
-        return (c.front + ' ' + c.back).toLowerCase().indexOf(q) >= 0;
+        return ((c.title || '') + ' ' + c.front + ' ' + c.back).toLowerCase().indexOf(q) >= 0;
       });
     }
     if(ui.manageSeg === 'archive') list = list.slice().sort(function(a, b){ return (b.archivedAt || 0) - (a.archivedAt || 0); });
@@ -1207,7 +1437,9 @@
         (q ? '‘' + esc(ui.search) + '’에 맞는 카드가 없어요.'
            : (ui.manageSeg === 'archive'
               ? '보관함이 비었어요.<br>다 외운 카드는 ‘다 외웠어요 · 숨기기’로 여기로 옮겨져요.'
-              : '공부 중인 카드가 없어요.<br>카드 추가에서 새로 만들어 보세요.')) +
+              : (isSpeech()
+                  ? '공부 중인 스피치가 없어요.<br>카드 추가 → 스피치에서 새로 넣어 보세요.'
+                  : '공부 중인 카드가 없어요.<br>카드 추가에서 새로 만들어 보세요.'))) +
         '</div>';
       return;
     }
@@ -1228,11 +1460,18 @@
         actions = '<button class="chip" data-action="open-cycle" data-target="' + c.id + '">' + intervalLabel(c.interval) + '<span class="caret"></span></button>' +
                   '<button class="icon-btn" data-action="archive-card" data-id="' + c.id + '" aria-label="카드 숨기기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 10.5h16M10 14.5h4"/></svg></button>';
       }
+      var sp = catOf(c) === 'speech';
+      var frontHTML = sp
+        ? (esc(c.title || cardLabel(c, 30) || '스피치') + '<span class="row-chip">스피치</span>')
+        : esc(c.front);
+      var backHTML = sp
+        ? esc(snippet(c.front, 90) || '—')
+        : esc(c.back || '—');
       return '<div class="row' + (c.archived ? ' archived' : '') + '">' +
         '<div class="row-top">' +
           '<div class="row-text">' +
-            '<div class="row-front">' + esc(c.front) + '</div>' +
-            '<div class="row-back">' + esc(c.back || '—') + '</div>' +
+            '<div class="row-front">' + frontHTML + '</div>' +
+            '<div class="row-back">' + backHTML + '</div>' +
             '<div class="row-meta">' + meta + '</div>' +
           '</div>' +
           '<div class="row-actions">' + actions + '</div>' +
@@ -1330,7 +1569,7 @@
     '</div>';
     var chips = (h.cards || []).map(function(id){
       var c = cardById(id);
-      return c ? c.front : null;
+      return c ? cardLabel(c, 22) : null;
     }).filter(Boolean).slice(0, 6);
     if(chips.length){
       html += '<div class="cs-cards">' + chips.map(function(t){ return '<span>' + esc(t) + '</span>'; }).join('') + '</div>';
@@ -1349,6 +1588,9 @@
     ui.tab = tab;
     $all('.view').forEach(function(v){ v.classList.toggle('active', v.id === 'view-' + tab); });
     $all('.tabbar button').forEach(function(b){ b.classList.toggle('on', b.dataset.tab === tab); });
+    var cb = document.getElementById('catBar');
+    if(cb) cb.hidden = (tab === 'calendar');
+    if(tab !== 'study') stopTTS();
     $('#main').scrollTop = 0;
     if(tab === 'study'){ renderStudy(); }
     if(tab === 'manage'){ renderManage(); }
@@ -1370,8 +1612,30 @@
     renderStudy();
   }
 
+  /* 단어카드 ↔ 스피치 */
+  function setCategory(cat){
+    if(cat !== 'word' && cat !== 'speech') return;
+    if(ui.cat === cat) return;
+    ui.cat = cat;
+    state.settings.category = cat;
+    save(true);
+    stopTTS();
+    clearCheck();
+    ui.flipped = false;
+    ui.pop = null;
+    ui.speechSide = 'en';
+    ui.speechCard = null;
+    buildQueue();
+    render();
+  }
+  function setSpeechSide(side){
+    ui.speechSide = side === 'ko' ? 'ko' : 'en';
+    renderStudy();
+  }
+
   /* ---------- 학습 동작 ---------- */
   function flip(){
+    if(isSpeech()){ stopTTS(); setSpeechSide(ui.speechSide === 'ko' ? 'en' : 'ko'); return; }
     ui.flipped = !ui.flipped;
     var c = $('#flipCard');
     if(c){
@@ -1469,7 +1733,7 @@
     if(left <= 1){
       ui.flipped = false;
       renderStudy();
-      toast('이 카드가 마지막 카드예요 · 복습 체크를 눌러 주세요', true);
+      toast('이 ' + nounLabel() + '가 마지막이에요 · 복습 체크를 눌러 주세요', true);
       return;
     }
     ui.queue.splice(ui.qIndex, 1);
@@ -1556,13 +1820,14 @@
     card.archivedAt = null;
     card.nextReview = now();
     save(true);
+    if(!ui.queue.length) buildQueue();
     render();
     toast('다시 공부할 카드로 되돌렸어요');
   }
   function deleteCard(id){
     var card = cardById(id);
     if(!card) return;
-    if(!window.confirm('이 카드를 완전히 지울까요?\n\n' + card.front + '\n(되돌릴 수 없어요)')){
+    if(!window.confirm('이 ' + nounLabel() + '를 완전히 지울까요?\n\n' + snippet(card.title || card.front, 60) + '\n(되돌릴 수 없어요)')){
       return;
     }
     state.cards = state.cards.filter(function(c){ return c.id !== id; });
@@ -1601,6 +1866,66 @@
     }catch(e){
       toast('발음을 틀지 못했어요. 잠시 뒤 다시 눌러 주세요.', true);
     }
+  }
+
+  /* ---------- 스피치 처음부터 끝까지 듣기 ---------- */
+  var tts = { on: false, chunks: [], i: 0, voice: null };
+  function ttsButton(){ return document.getElementById('ttsBtn'); }
+  function ttsVoice(){
+    if(tts.voice) return tts.voice;
+    var voices = window.speechSynthesis.getVoices() || [];
+    var v = voices.find(function(x){ return /en[-_]US/i.test(x.lang); }) ||
+            voices.find(function(x){ return /^en/i.test(x.lang); });
+    tts.voice = v || null;
+    return tts.voice;
+  }
+  /* 긴 지문을 문장 단위로 끊어 읽습니다(iOS safari가 긴 문장을 중간에 끓는 경우 대비) */
+  function splitSpeech(text){
+    var clean = String(text || '').replace(/\s+/g, ' ').trim();
+    if(!clean) return [];
+    var parts = clean.match(/[^.!?。！？]+[.!?。！？]*/g) || [clean];
+    var out = [], buf = '';
+    parts.forEach(function(p){
+      p = p.trim();
+      if(!p) return;
+      if(buf && (buf + ' ' + p).length > 200){ out.push(buf); buf = p; }
+      else buf = buf ? buf + ' ' + p : p;
+    });
+    if(buf) out.push(buf);
+    return out;
+  }
+  function stopTTS(){
+    try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+    tts.on = false; tts.chunks = []; tts.i = 0;
+    var b = ttsButton();
+    if(b){ b.classList.remove('playing'); b.textContent = '▶ 처음부터 듣기'; }
+  }
+  function playTTS(){
+    if(!('speechSynthesis' in window)){ toast('이 브라우저는 듣기를 지원하지 않아요.', true); return; }
+    if(tts.on){ stopTTS(); return; }
+    var card = currentCard();
+    if(!card) return;
+    var chunks = splitSpeech(card.front);
+    if(!chunks.length){ toast('읽을 영어 지문이 없어요.', true); return; }
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    tts.on = true; tts.chunks = chunks; tts.i = 0;
+    var b = ttsButton();
+    if(b){ b.classList.add('playing'); b.textContent = '■ 멈추기'; }
+    nextChunk();
+  }
+  function nextChunk(){
+    if(!tts.on) return;
+    if(tts.i >= tts.chunks.length){ stopTTS(); return; }
+    var u = new SpeechSynthesisUtterance(tts.chunks[tts.i]);
+    u.lang = 'en-US';
+    u.rate = 0.92;
+    u.pitch = 1.02;
+    var v = ttsVoice();
+    if(v){ try{ u.voice = v; }catch(e){} }
+    u.onend = function(){ if(!tts.on) return; tts.i++; nextChunk(); };
+    u.onerror = function(){ stopTTS(); };
+    try{ window.speechSynthesis.speak(u); }
+    catch(e){ stopTTS(); }
   }
 
   /* ---------- 음성 인식 ---------- */
@@ -1678,7 +2003,7 @@
     }
     var t = now();
     state.cards.push({
-      id: uid(), front: f, back: b,
+      id: uid(), category: 'word', title: '', front: f, back: b,
       interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
       reviews: 0, nextReview: t, lastReview: null, createdAt: t,
       archived: false, archivedAt: null
@@ -1687,10 +2012,77 @@
     $('#frontInput').value = '';
     $('#backInput').value = '';
     $('#frontInput').focus();
+    queueNewCard(state.cards[state.cards.length - 1].id);
     renderStats();
     renderStudy();
     renderManage();
     toast('카드를 저장했어요! 공부 탭에서 바로 볼 수 있어요.');
+  }
+
+  /* ---------- 스피치 추가 ---------- */
+  function updateSpeechCount(){
+    var el = document.getElementById('speechCount');
+    var box = document.getElementById('speechFront');
+    if(!el || !box) return;
+    var wc = countWords(box.value);
+    el.textContent = wc + '단어' + (wc ? ' · 약 ' + Math.max(1, Math.round(wc / 130)) + '분' : '');
+  }
+  function saveSpeech(){
+    var titleEl = document.getElementById('speechTitle');
+    var fEl = document.getElementById('speechFront');
+    var bEl = document.getElementById('speechBack');
+    var title = (titleEl ? titleEl.value : '').trim();
+    var f = (fEl ? fEl.value : '').trim();
+    var b = (bEl ? bEl.value : '').trim();
+    if(!f){ toast('앞면에 들어갈 영어 지문을 먼저 넣어 주세요.', true); return; }
+    var t = now();
+    state.cards.push({
+      id: uid(), category: 'speech', title: title, front: f, back: b,
+      interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
+      reviews: 0, nextReview: t, lastReview: null, createdAt: t,
+      archived: false, archivedAt: null
+    });
+    save(true);
+    if(titleEl) titleEl.value = '';
+    if(fEl) fEl.value = '';
+    if(bEl) bEl.value = '';
+    updateSpeechCount();
+    queueNewCard(state.cards[state.cards.length - 1].id);
+    renderStats();
+    renderStudy();
+    renderManage();
+    toast('스피치를 저장했어요! 공부 탭 → 스피치에서 볼 수 있어요.');
+  }
+  function readSpeechFile(file, targetId){
+    if(!file) return;
+    var name = String(file.name || '').toLowerCase();
+    var type = String(file.type || '');
+    if(!/\.(txt|md)$/.test(name) && !/^text\//.test(type)){
+      toast('텍스트(.txt) 파일만 불러올 수 있어요. 내용을 복사해 붙여넣어 주세요.', true);
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(){
+      var text = String(reader.result || '').replace(/^\uFEFF/, '').trim();
+      var box = document.getElementById(targetId);
+      if(box){
+        box.value = text;
+        box.focus();
+      }
+      updateSpeechCount();
+      toast(file.name + ' · ' + countWords(text) + '단어를 불러왔어요');
+    };
+    reader.onerror = function(){ toast('파일을 읽지 못했어요.', true); };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  /* 새로 넣은 카드는 지금 공부 중인 큐 맨 뒤에 붙여 바로 볼 수 있게 한다 */
+  function queueNewCard(id){
+    var c = cardById(id);
+    if(!c || c.archived) return;
+    if(catOf(c) !== ui.cat) return;
+    if(ui.queue.indexOf(id) >= 0) return;
+    ui.queue.push(id);
   }
 
   /* ---------- 자료 파싱 ---------- */
@@ -1860,7 +2252,7 @@
       });
       if(dup) return;
       state.cards.push({
-        id: uid(), front: r.front, back: r.back,
+        id: uid(), category: 'word', title: '', front: r.front, back: r.back,
         interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
         reviews: 0, nextReview: t, lastReview: null, createdAt: t,
         archived: false, archivedAt: null
@@ -1872,6 +2264,7 @@
     $('#bulkInput').value = '';
     $('#bulkPreview').hidden = true;
     $('#bulkPreview').innerHTML = '';
+    if(added) state.cards.slice(-added).forEach(function(c){ queueNewCard(c.id); });
     renderStats(); renderStudy(); renderManage();
     var skipped = valid.length - added;
     toast(skipped > 0 ? added + '장 저장했어요 (' + skipped + '장은 이미 있어서 건너뜀)' : added + '장 카드를 한 번에 저장했어요!');
@@ -2056,7 +2449,7 @@
       if(!card) return;
       cur = card.interval;
       $('#cycleTitle').textContent = '이 카드의 복습 주기';
-      $('#cycleSub').textContent = '‘' + card.front + '’ 카드에만 적용돼요.';
+      $('#cycleSub').textContent = '‘' + cardLabel(card, 24) + '’ 에는 이 주기가 적용돼요.';
       $('#cycleNote').textContent = '바꾸면 다음 복습 예정일도 새 주기로 다시 잡혀요.';
     }
     $('#cycleModal').dataset.current = cur.value + ':' + cur.unit;
@@ -2165,6 +2558,11 @@
     var keepTheme = state.settings.theme;
     state = freshState();
     state.settings.theme = keepTheme;
+    state.settings.category = 'word';
+    ui.cat = 'word';
+    ui.speechSide = 'en';
+    ui.speechCard = null;
+    stopTTS();
     ui.calYear = null;
     ui.calMonth = null;
     ui.calSel = todayKey();
@@ -2217,6 +2615,15 @@
     }
     if(action === 'cal-select'){ ui.calSel = el.dataset.date; renderCalendar(); return; }
     if(action === 'mode'){ setMode(el.dataset.mode); return; }
+    if(action === 'cat'){ setCategory(el.dataset.cat); return; }
+    if(action === 'speech-side'){ setSpeechSide(el.dataset.side); return; }
+    if(action === 'speech-tts'){ playTTS(); return; }
+    if(action === 'save-speech'){ saveSpeech(); return; }
+    if(action === 'speech-file'){
+      var inp = document.getElementById(el.dataset.target === 'speechBack' ? 'speechFileBack' : 'speechFileFront');
+      if(inp) inp.click();
+      return;
+    }
     if(action === 'restart-free'){ setMode('free'); return; }
     if(action === 'seg-manage'){
       ui.manageSeg = el.dataset.seg;
@@ -2275,6 +2682,15 @@
     importJSON(e.target.files && e.target.files[0]);
     e.target.value = '';
   });
+  $('#speechFileFront').addEventListener('change', function(e){
+    readSpeechFile(e.target.files && e.target.files[0], 'speechFront');
+    e.target.value = '';
+  });
+  $('#speechFileBack').addEventListener('change', function(e){
+    readSpeechFile(e.target.files && e.target.files[0], 'speechBack');
+    e.target.value = '';
+  });
+  $('#speechFront').addEventListener('input', updateSpeechCount);
   $('#searchInput').addEventListener('input', function(e){
     ui.search = e.target.value;
     renderManage();
@@ -2296,8 +2712,12 @@
     $('#saveState').textContent = '저장 불가';
   }
   applyTheme(state.settings.theme, false);
+  ui.cat = (state.settings && state.settings.category) === 'speech' ? 'speech' : 'word';
+  $all('[data-action="cat"]').forEach(function(b){ b.classList.toggle('on', b.dataset.cat === ui.cat); });
   buildQueue();
   render();
+  updateSpeechCount();
+  window.addEventListener('resize', function(){ fitCardTexts(); });
   /* 아이폰에서 발음 목록이 늦게 로딩되는 경우 대비 */
   if('speechSynthesis' in window){
     window.speechSynthesis.getVoices();
