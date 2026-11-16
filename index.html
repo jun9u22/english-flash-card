@@ -177,10 +177,12 @@
   .mini-stamps.dense{gap:2px}
   .mini-stamps.dense i{width:5px;height:5px}
 
-  /* 복습 체크 — 카드 바깥(카드 바로 밑) 별도 영역, 눌러도 카드는 뒤집히지 않음 */
+  /* 복습 체크 + 다음 카드 — 카드 바로 밑 한 줄에 나란히 */
+  .rcheck-row{display:flex;align-items:center;gap:7px;margin:0 0 10px;min-width:0}
   .rcheck{
-    display:flex;align-items:center;gap:8px;min-width:0;
-    margin:0 0 10px;padding:8px 12px;
+    display:flex;align-items:center;gap:7px;min-width:0;
+    flex:1 1 auto;
+    margin:0;padding:8px 11px;
     background:var(--paper);border:1.5px solid var(--line2);border-radius:18px;
     box-shadow:var(--shadow-sm);cursor:pointer;
     transition:transform .12s,border-color .18s,background .18s;
@@ -193,16 +195,33 @@
     font-size:13px;font-weight:800;line-height:1;
   }
   .rcheck-txt{flex:0 0 auto;display:flex;flex-direction:column;gap:2px;line-height:1.05}
-  .rcheck-txt em{font-style:normal;font-size:10px;font-weight:800;color:var(--muted);letter-spacing:-.1px}
+  .rcheck-txt em{font-style:normal;font-size:9.5px;font-weight:800;color:var(--muted);letter-spacing:-.1px}
   .rcheck-txt b{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
-  .rcheck-dots{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:3.5px;margin-left:auto;min-width:0}
-  .rcheck .stamp{width:16px;height:16px;border-width:1.5px}
+  .rcheck-dots{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:3px;margin-left:auto;min-width:0}
+  .rcheck .stamp{width:15px;height:15px;border-width:1.5px}
   .rcheck-undo{
-    flex:0 0 auto;padding:6px 10px;border-radius:999px;white-space:nowrap;
+    flex:0 0 auto;padding:5px 8px;border-radius:999px;white-space:nowrap;
     background:var(--mint-soft);border:1px solid #D6F0E6;color:#3E9C80;
-    font-size:10.5px;font-weight:800;letter-spacing:-.2px;
+    font-size:10px;font-weight:800;letter-spacing:-.3px;
   }
   .rcheck-undo:active{transform:scale(.96);background:#DFF6EE}
+  /* 다음 카드 — 복습 체크 오른쪽의 이동 버튼(복습 횟수는 건드리지 않음) */
+  .next-card{
+    flex:0 0 auto;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    min-width:76px;min-height:46px;padding:8px 10px;
+    background:#fff;border:1.5px solid var(--line2);border-radius:18px;
+    color:var(--ink-soft);font-size:12.5px;font-weight:800;letter-spacing:-.3px;
+    line-height:1.1;white-space:nowrap;box-shadow:var(--shadow-sm);
+    transition:transform .12s,background .18s,border-color .18s,color .18s,box-shadow .18s;
+  }
+  .next-card .next-arrow{font-style:normal;font-size:13px;font-weight:800;opacity:.55;line-height:1}
+  .next-card:active{transform:scale(.96)}
+  .next-card.ready{
+    background:linear-gradient(135deg,#77D6BA,#4FB795);border-color:transparent;color:#fff;
+    box-shadow:0 6px 16px rgba(79,183,149,.28);
+  }
+  .next-card.ready .next-arrow{opacity:.95}
+  .next-card.alone{color:#B6A99C;border-style:dashed;box-shadow:none}
 
   /* 카드 배경 테마 고르기 */
   .theme-bar{
@@ -1069,7 +1088,7 @@
           '</div>',
         '</div>',
       '</div>',
-      reviewCheckHTML(card),
+      '<div class="rcheck-row">', reviewCheckHTML(card), nextCardHTML(card), '</div>',
       '<div class="actions' + (ui.flipped || ui.checkedId === card.id ? '' : ' locked') + '">',
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
@@ -1099,6 +1118,16 @@
         '<span class="rcheck-dots" aria-hidden="true">' + dots + '</span>' +
         undo +
       '</div>';
+  }
+
+  /* 복습 체크 옆 '다음 카드' 버튼 — 체크했으면 초록으로 물들어 다음 넘김을 안내 */
+  function nextCardHTML(card){
+    var ready = !!(ui.checkedId && card && ui.checkedId === card.id);
+    var left = Math.max(0, ui.queue.length - ui.qIndex);
+    return '<button type="button" class="next-card' + (ready ? ' ready' : '') + (left <= 1 ? ' alone' : '') + '" ' +
+        'id="nextCard" data-action="next-card" aria-label="다음 카드 보기 · 큐에 ' + left + '장">' +
+        '<span>다음 카드</span><i class="next-arrow" aria-hidden="true">→</i>' +
+      '</button>';
   }
 
   function emptyStudyHTML(){
@@ -1422,6 +1451,31 @@
     renderStudy();
     renderCalendar();
     toast('방금 체크를 되돌렸어요');
+  }
+  /* 다음 카드 — 복습 횟수는 그대로 두고 큐의 다음 카드로 이동
+     · 복습 체크를 이미 눌렀으면 그 카드는 오늘 몫 끝(중복 증가 없음)
+     · 안 눌렀으면 현재 카드를 큐 맨 뒤로 보내고 다음 카드를 앞면으로 */
+  function nextCard(){
+    var card = currentCard();
+    if(!card || ui.busy) return;
+    var checked = (ui.checkedId === card.id);
+    var left = Math.max(0, ui.queue.length - ui.qIndex);
+    if(checked){
+      clearCheck();
+      ui.queue.splice(ui.qIndex, 1);
+      advance();
+      return;
+    }
+    if(left <= 1){
+      ui.flipped = false;
+      renderStudy();
+      toast('이 카드가 마지막 카드예요 · 복습 체크를 눌러 주세요', true);
+      return;
+    }
+    ui.queue.splice(ui.qIndex, 1);
+    ui.queue.push(card.id);
+    ui.flipped = false;
+    renderStudy();
   }
   function grade(knew){
     var card = currentCard();
@@ -2144,6 +2198,7 @@
     if(action === 'grade-known'){ grade(true); return; }
     if(action === 'grade-again'){ grade(false); return; }
     if(action === 'review-check'){ reviewCheck(); return; }
+    if(action === 'next-card'){ nextCard(); return; }
     if(action === 'review-undo'){ reviewUndo(); return; }
     if(action === 'archive-current'){
       var c = currentCard();
