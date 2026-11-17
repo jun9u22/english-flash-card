@@ -3348,7 +3348,7 @@
     box.innerHTML =
       '<button class="sh-b' + (ui.shPause ? ' on' : '') + '" data-action="sh-pause">한 문장 멈춤 ' + (ui.shPause ? 'ON' : 'OFF') + '</button>' +
       '<button class="sh-b' + (ui.shLoop ? ' on' : '') + '" data-action="sh-loop">문장 반복' + (ui.shLoop ? ' 중' : '') + '</button>' +
-      (hasT ? '<button class="sh-b" data-action="sh-back" data-sec="3">-3초</button>' : '') +
+      (hasT ? '<button class="sh-b" data-action="sh-back" data-sec="3">-3초</button><button class="sh-b" data-action="sh-back" data-sec="5">-5초</button>' : '') +
       '<span class="sh-rates">' + rates + '</span>' +
       '<div class="sh-nav" style="flex:1 1 100%;margin-top:7px">' +
         '<button data-action="sh-prev"><b>◀</b> 이전</button>' +
@@ -3762,7 +3762,7 @@
       return;
     }
     var withT = lines.filter(function(l){ return l.t != null; }).length;
-    box.innerHTML = '<b>' + lines.length + '문장</b>' + (withT ? ' · 타임코드 ' + withT + '개' : ' · 타임코드 없음(문장 이동은 안 돼요)') + '<br>' +
+    box.innerHTML = '<b>' + lines.length + '문장</b>' + (withT ? ' · 타임코드 ' + withT + '개' : ' · 타임코드 없음 · AI 발음으로 한 문장씩 연습') + '<br>' +
       lines.slice(0, 3).map(function(l, i){
         return (i + 1) + '. ' + (l.t != null ? mmss(l.t) + ' ' : '') + esc(l.en) +
           (l.ko ? ' <span style="color:#8A7A6E">/ ' + esc(l.ko) + '</span>' : '');
@@ -3782,6 +3782,10 @@
     ui.shIdx = 0;
     ui.shScore = null;
     ui.shParsed = null;
+    ui.shStopAt = null;
+    ui.shAudioUrl = '';
+    ui.shAudioType = '';
+    ui.shRecSec = 0;
     saveShadow();
     document.getElementById('shUrl').value = '';
     document.getElementById('shTitle').value = '';
