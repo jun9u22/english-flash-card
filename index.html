@@ -3209,7 +3209,8 @@
                   }
                 }
                 startShTick();
-              }else{
+              }else if(e.data === 2 || e.data === 0){
+                /* 일시정지·종료일 때만 멈춤 지점을 비운다(버퍼링 -1·3에서는 유지) */
                 ui.shStopAt = null;
               }
               shRenderCtrl();
@@ -3296,7 +3297,7 @@
         return;
       }
       /* 한 문장 멈춤: 고른 문장의 끝 시점에서 자동 일시정지 */
-      if(ui.shPause && ui.shStopAt != null && ct >= ui.shStopAt - 0.05){
+      if(ui.shPause && ui.shPlaying && ui.shStopAt != null && ct >= ui.shStopAt - 0.05 && ct <= ui.shStopAt + 1.2){
         ui.shStopAt = null;
         try{ shPlayer.pauseVideo(); }catch(e){}
         ui.shPlaying = false;
