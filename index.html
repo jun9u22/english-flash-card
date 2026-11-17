@@ -1942,8 +1942,8 @@
     $all('.tabbar button').forEach(function(b){ b.classList.toggle('on', b.dataset.tab === tab); });
     var cb = document.getElementById('catBar');
     if(cb) cb.hidden = (tab === 'calendar');
-    if(tab !== 'study') stopTTS();
     if(tab !== 'study' && seq.on) seqPause(true);
+    if(tab !== 'study') stopTTS();
     $('#main').scrollTop = 0;
     if(tab === 'study' && !ui.shadow){ renderStudy(); }
     if(tab === 'manage'){ renderManage(); }
@@ -2218,8 +2218,13 @@
   var bm = null;                        /* { id, at } — 마지막으로 들주던/북마크한 카드 */
   var seq = {                           /* 연속 듣기 플레이어 상태 */
     on: false, paused: false, list: [], idx: 0, phase: 'en',
-    utt: null, timer: null, gap: null
+    utt: null, timer: null, gap: null, gen: 0
   };
+  /* 의도적으로 끈 음성의 onerror가 '재생 실패'로 처리되지 않도록 세대 번호를 올린다 */
+  function seqCancelSpeech(){
+    seq.gen = (seq.gen || 0) + 1;
+    try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+  }
   var SEQ_VOICE = { 'en-US': null, 'ko-KR': null };
   var EN_VOICE_NAMES = ['samantha', 'ava', 'zoe', 'allison', 'nicky', 'susan', 'serena', 'daniel', 'karen', 'moira', 'tessa', 'google us english', 'aria', 'jenny', 'guy', 'natural'];
   var KO_VOICE_NAMES = ['yuna', 'sora', 'suhyun', 'jihye', 'goun', 'google 한국의', 'google 한국어', '유나', '자연'];
@@ -2306,10 +2311,12 @@
     var v = seqVoice(lang);
     if(v){ try{ u.voice = v; }catch(e){} }
     var fired = false;
+    var gen = seq.gen || 0;
     function fin(){
       if(fired) return;
       fired = true;
       if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
+      if(gen !== (seq.gen || 0)) return;
       done();
     }
     u.onend = fin;
@@ -2317,6 +2324,7 @@
       if(fired) return;
       fired = true;
       if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
+      if(gen !== (seq.gen || 0)) return;
       if(seq.on){ seqStop(false); toast('음을 재생하지 못했어요. 잠시 뒤 다시 눌러 주세요.', true); }
     };
     seq.utt = u;
@@ -2355,6 +2363,7 @@
   /* 지금 읽는 카드를 공부 화면에도 보여 준다(영어 읽을 땐 앞면, 한국어 읽을 땐 뒷면) */
   function seqShowCard(){
     var card = seqCardAt(seq.idx);
+    renderSeqBar();
     if(!card) return;
     if(ui.tab !== 'study' || ui.shadow || isSpeech()) return;
     if(ui.queue.length !== seq.list.length || ui.queue[ui.qIndex] !== card.id){
@@ -2413,7 +2422,7 @@
     if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
     if(seq.gap){ clearTimeout(seq.gap); seq.gap = null; }
     seq.utt = null;
-    try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+    seqCancelSpeech();
     if(!quiet) renderSeqBar();
   }
   function seqPause(silent){
@@ -2424,7 +2433,7 @@
     if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
     if(seq.gap){ clearTimeout(seq.gap); seq.gap = null; }
     seq.utt = null;
-    try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+    seqCancelSpeech();
     if(card) bmSave(card.id);           /* 듣던 카드를 북마크로 남겨 둔다 */
     else renderSeqBar();
     if(!silent){
@@ -2465,7 +2474,7 @@
     seq.paused = false;
     if(seq.gap){ clearTimeout(seq.gap); seq.gap = null; }
     if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
-    try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+    seqCancelSpeech();
     seqShowCard();
     seqSpeakPhase();
   }
