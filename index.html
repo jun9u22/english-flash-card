@@ -2363,7 +2363,7 @@
   /* 지금 읽는 카드를 공부 화면에도 보여 준다(영어 읽을 땐 앞면, 한국어 읽을 땐 뒷면) */
   function seqShowCard(){
     var card = seqCardAt(seq.idx);
-    renderSeqBar();
+    seqUpdateBar();
     if(!card) return;
     if(ui.tab !== 'study' || ui.shadow || isSpeech()) return;
     if(ui.queue.length !== seq.list.length || ui.queue[ui.qIndex] !== card.id){
@@ -2379,7 +2379,7 @@
     if(!card){ seqFinish(); return; }
     var txt = seq.phase === 'ko' ? card.back : card.front;
     if(!String(txt || '').trim()){ seqAdvancePhase(); return; }
-    renderSeqBar();
+    seqUpdateBar();
     seqSay(txt, seq.phase === 'ko' ? 'ko-KR' : 'en-US', function(){
       if(!seq.on) return;
       seqAdvancePhase();
@@ -2497,34 +2497,65 @@
     seqStart(bm.id);
   }
 
+  function seqBookmarkPos(){
+    if(!(bm && bm.id)) return 0;
+    var k = seqListNow().indexOf(bm.id);
+    return k >= 0 ? k + 1 : 0;
+  }
+  function seqPosText(){
+    var n = seqListNow().length;
+    if(!n) return '카드 없음';
+    var label = seq.on ? seqPhaseLabel() : (seq.paused ? '일시정지' : '대기 중');
+    return (seqIndexNow() + 1) + ' / ' + n + ' · ' + label;
+  }
+  function seqNoteHTML(bp, n){
+    return bp
+      ? ('🔖 북마크한 카드 ' + bp + ' / ' + n + ' · 이어 들으려면 위의 <b>북마크부터 듣기</b>를 누르세요')
+      : '영어 → 한국어 순서로 읽고 다음 카드로 넘어가요.';
+  }
+  /* 플레이어 바 전체를 새로 그린다(버튼이 새로 만들어지므로 상태가 바뀔 때만) */
   function renderSeqBar(){
     var bar = document.getElementById('seqBar');
     if(!bar) return;
     bar.hidden = isSpeech();
     if(bar.hidden) return;
-    var list = seqListNow();
-    var n = list.length;
-    var idx = seqIndexNow();
-    var label = seq.on ? seqPhaseLabel() : (seq.paused ? '일시정지' : '대기 중');
-    var pos = n ? ((idx + 1) + ' / ' + n + ' · ' + label) : '카드 없음';
-    var bmPos = 0;
-    if(bm && bm.id){
-      var k = list.indexOf(bm.id);
-      bmPos = k >= 0 ? k + 1 : 0;
-    }
-    var html = '<div class="seq-top"><span class="seq-title">🎧 이어 듣기</span>' +
-      '<span class="seq-pos">' + esc(pos) + '</span></div>' +
+    var n = seqListNow().length;
+    var bp = seqBookmarkPos();
+    bar.innerHTML =
+      '<div class="seq-top"><span class="seq-title">🎧 이어 듣기</span>' +
+        '<span class="seq-pos" id="seqPosText">' + esc(seqPosText()) + '</span></div>' +
       '<div class="seq-btns">' +
         '<button class="seq-btn main" data-action="seq-play">▶ 전체 듣기</button>' +
-        '<button class="seq-btn' + (seq.on ? ' playing' : '') + '" data-action="seq-toggle">' +
+        '<button class="seq-btn' + (seq.on ? ' playing' : '') + '" id="seqToggleBtn" data-action="seq-toggle">' +
           (seq.on ? '⏸ 일시정지' : (seq.paused ? '▶ 이어 듣기' : '⏸ 일시정지')) + '</button>' +
-        '<button class="seq-btn bm' + (bmPos ? ' has' : '') + '" data-action="seq-bm">🔖 북마크부터 듣기</button>' +
+        '<button class="seq-btn bm' + (bp ? ' has' : '') + '" id="seqBmBtn" data-action="seq-bm" data-pos="' + bp + '">🔖 북마크부터 듣기</button>' +
         '<button class="seq-btn" data-action="seq-prev">◀ 이전</button>' +
         '<button class="seq-btn" data-action="seq-next">다음 ▶</button>' +
       '</div>' +
-      (bmPos ? '<div class="seq-note">🔖 북마크한 카드 ' + bmPos + ' / ' + n + ' · 이어 들으려면 위의 <b>북마크부터 듣기</b>를 누르세요</div>' :
-        '<div class="seq-note">영어 → 한국어 순서로 읽고 다음 카드로 넘어가요.</div>');
-    bar.innerHTML = html;
+      '<div class="seq-note" id="seqNote">' + seqNoteHTML(bp, n) + '</div>';
+  }
+  /* 재생 중에는 글자와 버튼 상태만 바꾼다(버튼을 다시 만들지 않아 누르는 중에 사라지지 않게) */
+  function seqUpdateBar(){
+    var bar = document.getElementById('seqBar');
+    if(!bar || bar.hidden) return;
+    var posEl = document.getElementById('seqPosText');
+    if(posEl) posEl.textContent = seqPosText();
+    var tg = document.getElementById('seqToggleBtn');
+    if(tg){
+      var label = seq.on ? '⏸ 일시정지' : (seq.paused ? '▶ 이어 듣기' : '⏸ 일시정지');
+      if(tg.textContent !== label) tg.textContent = label;
+      tg.classList.toggle('playing', !!seq.on);
+    }
+    var bmEl = document.getElementById('seqBmBtn');
+    if(bmEl){
+      var bp = seqBookmarkPos();
+      if(bmEl.dataset.pos !== String(bp)){
+        bmEl.dataset.pos = String(bp);
+        bmEl.classList.toggle('has', !!bp);
+        var note = document.getElementById('seqNote');
+        if(note) note.innerHTML = seqNoteHTML(bp, seqListNow().length);
+      }
+    }
   }
 
   /* ---------- 발음 듣기 ---------- */
