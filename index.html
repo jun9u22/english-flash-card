@@ -508,9 +508,9 @@
   .sh-bar{display:flex;gap:6px;align-items:center;min-width:0}
   .sh-lessons{display:flex;gap:6px;overflow-x:auto;padding:1px 1px 5px;flex:1 1 auto;min-width:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .sh-lessons::-webkit-scrollbar{display:none}
-  .sh-les{flex:0 0 auto;max-width:190px;padding:7px 11px;border-radius:13px;background:#fff;border:1.5px solid var(--line2);text-align:left;color:var(--ink-soft);font-size:11.5px;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px}
+  .sh-les{flex:0 0 auto;max-width:196px;padding:7px 11px;border-radius:13px;background:#fff;border:1.5px solid var(--line2);text-align:left;color:var(--ink-soft);font-size:11.5px;font-weight:800;line-height:1.3;letter-spacing:-.2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:keep-all}
   .sh-les.on{background:linear-gradient(135deg,#8FD0B8,#3FA98A);border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(63,169,138,.26)}
-  .sh-les small{display:block;font-size:9.5px;font-weight:700;opacity:.82;margin-top:1px}
+  .sh-les small{display:block;font-size:9.5px;font-weight:700;opacity:.85;margin-top:1px;letter-spacing:0}
   .sh-plus{flex:0 0 auto;width:36px;height:36px;border-radius:13px;background:#fff;border:1.5px dashed var(--line2);color:#8E7F72;font-size:18px;font-weight:800;display:grid;place-items:center;line-height:1}
   .sh-plus.on{background:var(--mint-soft);border-style:solid;border-color:#BFE8DA;color:#2F8568}
   .sh-vid{position:relative;width:100%;aspect-ratio:16/9;background:#171614;border-radius:18px;overflow:hidden;border:1px solid var(--line2);box-shadow:var(--shadow-sm)}
@@ -979,7 +979,7 @@
   /* 기본 내장 쉐도잉 레슨 — TBS 공식 클립의 실제 대사 타임코드 */
   var SH_SAMPLES = [
     {
-      title: "Friends S3 · Joey's Awful Mistake",
+      title: '프렌즈 S3 · 조이의 끔찍한 실수',
       videoId: '_4WxoTeaMZM',
       lines: [
         [3.1, 4.4, 'Is, uh, is Chandler around?', '어, 챈들러 있어?'],
@@ -1003,7 +1003,7 @@
       ]
     },
     {
-      title: 'Friends S3 · Ross Cheats on Rachel',
+      title: '프렌즈 S3 · 로스의 바람',
       videoId: 'wizgxRBfVTY',
       lines: [
         [0, 1.8, 'Come on, Rachel. Come on, talk to me, please.', '레이첼, 제발 나랑 얘기 좀 해 줘.'],
