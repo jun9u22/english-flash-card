@@ -3405,7 +3405,7 @@
       '</div>';
     }
     if(ui.shAudioUrl){
-      html += '<div class="sh-recbox">' +
+      html += '<div class="sh-recbox" id="shRecBox">' +
         '<div class="rb-top"><span>내 녹음' + (ui.shRecSec ? ' · ' + mmss(ui.shRecSec) : '') + '</span>' +
           '<span>' + esc(String(ui.shAudioType || '').split(';')[0].replace('audio/', '')) + '</span></div>' +
         '<button class="sh-replay" data-action="sh-play-rec">▶ 내 녹음 듣기</button>' +
@@ -3629,7 +3629,11 @@
         ui.shAudioType = url ? (type || ui.shRecType) : '';
         ui.shRec = null;
         shRenderPrac();
-        if(url) toast('녹음했어요. "▶ 내 녹음 듣기"를 눌러 들어 보세요.');
+        if(url){
+          var rb = document.getElementById('shRecBox');
+          if(rb && rb.scrollIntoView){ try{ rb.scrollIntoView({ block: 'center', behavior: 'smooth' }); }catch(e2){ rb.scrollIntoView(); } }
+          toast('녹음했어요. "▶ 내 녹음 듣기"를 눌러 들어 보세요.');
+        }
         else toast('녹음이 저장되지 않았어요. 다시 한 번 시도해 주세요.', true);
       };
       try{ mr.start(1000); }catch(e){ try{ mr.start(); }catch(e2){} }
@@ -3898,7 +3902,19 @@
     if(action === 'sh-line'){ shPickLine(el.dataset.i); return; }
     if(action === 'sh-pause'){
       ui.shPause = !ui.shPause;
-      if(!ui.shPause) ui.shStopAt = null;
+      if(!ui.shPause){ ui.shStopAt = null; }
+      else if(ui.shPlaying && shPlayerReady && shPlayer && shPlayer.getCurrentTime){
+        /* 재생 중에 켜면 지금 문장(또는 다음 문장) 끝에서 멈추게 한다 */
+        var lnP = shLine(), ctP = 0, pk = null, kP, lsP;
+        try{ ctP = shPlayer.getCurrentTime() || 0; }catch(e){}
+        if(lnP && lnP.t != null && ctP < shLineEnd(lnP) - 0.1){ ui.shStopAt = shLineEnd(lnP); }
+        else {
+          lsP = (shLesson() || { lines: [] }).lines;
+          for(kP = 0; kP < lsP.length; kP++){ if(lsP[kP].t != null && lsP[kP].t > ctP){ pk = lsP[kP]; break; } }
+          if(pk) ui.shStopAt = shLineEnd(pk);
+        }
+        startShTick();
+      }
       shRenderCtrl();
       return;
     }
