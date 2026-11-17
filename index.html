@@ -2327,6 +2327,7 @@
       if(gen !== (seq.gen || 0)) return;
       if(!seq.on) return;
       var code = String((ev && ev.error) || '');
+      try{ window.__seqDbg = (window.__seqDbg || []).slice(-5).concat([code + '|gen' + gen + '|cut' + (seq.gen || 0) + '|try' + (seq.retry || 0) + '|on' + (seq.on ? 1 : 0)]); }catch(e){}
       /* 취소·중단은 의도한 경우가 많다 — 한두 번은 같은 문장을 다시 읽어 본다 */
       if(/interrupt|cancel/i.test(code) && (seq.retry || 0) < 2){
         seq.retry = (seq.retry || 0) + 1;
