@@ -556,6 +556,9 @@
   .sh-score .sc-top b.bad{color:#C2593F}
   .sh-score .sc-heard{font-size:11.5px;color:var(--ink-soft);background:#FFF9F2;border:1px solid var(--line);border-radius:10px;padding:6px 9px;margin-top:7px;line-height:1.5}
   .sh-score .sc-heard i{font-style:normal;color:#B0A196;font-weight:700}
+  .sc-say{display:block;width:100%;margin-top:7px;padding:10px 10px;border-radius:11px;background:#fff;border:1.5px solid #F3B7A2;color:#B4573C;font-size:12.5px;font-weight:800;letter-spacing:-.2px}
+  .sc-say:active{transform:scale(.99)}
+  .sc-say:disabled{opacity:.42;background:#FFF9F2;border-color:var(--line);color:var(--muted)}
   .wchips{margin-top:7px;line-height:1.9}
   .wchip{display:inline-block;padding:1px 6px;margin:2px 3px 0 0;border-radius:7px;font-size:12px;font-weight:700}
   .wchip.ok{background:#E9F8F1;border:1px solid #C6ECDD;color:#2F8568}
@@ -3402,6 +3405,7 @@
         }).join('') + '</div>' +
         (sc.said ? '<div class="sc-heard"><i>들은 말</i> · ' + esc(sc.said) + '</div>' :
           '<div class="sc-heard"><i>들은 말이 없어요</i> · 마이크 가까이에서 다시 말해 보세요.</div>') +
+        '<button class="sc-say" data-action="sh-say-heard"' + (sc.said ? '' : ' disabled') + '>▶ 말한 문장 듣기</button>' +
       '</div>';
     }
     if(ui.shAudioUrl){
@@ -3471,6 +3475,22 @@
     try{ ct = shPlayer.getCurrentTime() || 0; }catch(e){}
     var to = Math.max(0, ct - (Number(sec) || 3));
     try{ shPlayer.seekTo(to, true); }catch(e){}
+  }
+  function shSpeakHeard(){
+    var sc = ui.shScore;
+    var said = sc && sc.said ? String(sc.said).trim() : '';
+    if(!said){ toast('인식된 문장이 없어요. 다시 말해 보시면 들려드릴게요.', true); return; }
+    if(!('speechSynthesis' in window)){ toast('이 브라우저는 듣기를 지원하지 않아요.', true); return; }
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(said.replace(/[^\p{L}\p{N}\s'’\-.,?!]/gu, ''));
+      u.lang = 'en-US';
+      u.rate = 0.9;
+      u.pitch = 1.02;
+      var v = ttsVoice();
+      if(v){ try{ u.voice = v; }catch(e){} }
+      window.speechSynthesis.speak(u);
+    }catch(e){ toast('말한 문장을 들려주지 못했어요. 잠시 뒤 다시 눌러 주세요.', true); }
   }
   function shSpeakLine(){
     var line = shLine();
@@ -3937,6 +3957,7 @@
     if(action === 'sh-again'){ shPlayLine(); return; }
     if(action === 'sh-listen-line'){ shListenLine(); return; }
     if(action === 'sh-play-rec'){ shPlayRec(); return; }
+    if(action === 'sh-say-heard'){ shSpeakHeard(); return; }
     if(action === 'sh-back'){ shBackSec(el.dataset.sec); return; }
     if(action === 'sh-rate'){ shSetRate(Number(el.dataset.rate)); return; }
     if(action === 'sh-hide-en'){ ui.shHideEn = !ui.shHideEn; shRenderPrac(); shRenderLines(); return; }
