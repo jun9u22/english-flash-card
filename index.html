@@ -524,6 +524,20 @@
   .sh-rates{display:flex;gap:2px;background:#fff;border:1.5px solid var(--line2);border-radius:12px;padding:3px;margin-left:auto}
   .sh-rates button{padding:4px 7px;border-radius:9px;font-size:10.5px;font-weight:800;color:var(--muted)}
   .sh-rates button.on{background:var(--ink);color:#fff}
+  .sh-nav{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:6px;margin-top:9px}
+  .sh-nav button{display:flex;align-items:center;justify-content:center;gap:4px;padding:12px 4px;border-radius:14px;background:#FFFDFA;border:1.5px solid var(--line2);font-size:12px;font-weight:800;color:var(--ink-soft);line-height:1.1;letter-spacing:-.2px;min-width:0}
+  .sh-nav button:active{transform:scale(.97)}
+  .sh-nav button.main{background:linear-gradient(135deg,#8FD0B8,#3FA98A);border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(63,169,138,.24)}
+  .sh-nav b{font-size:12px;font-weight:700}
+  .sh-ai{margin-top:7px;font-size:10.5px;font-weight:800;color:#8E7F72;background:#FFF9F2;border:1px solid var(--line);border-radius:9px;padding:5px 10px}
+  .sh-recbox{margin-top:10px;padding:10px 11px 11px;border-radius:15px;background:#FFF6F2;border:1.5px solid #F7D5C8}
+  .sh-recbox .rb-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;font-weight:800;color:#B4573C;letter-spacing:-.2px}
+  .sh-recbox .rb-top .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#E4704F;margin-right:5px;animation:shRecPulse 1s infinite}
+  @keyframes shRecPulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .sh-replay{width:100%;margin-top:9px;padding:14px 10px;border-radius:14px;background:#fff;border:1.5px solid #F3B7A2;color:#B4573C;font-size:14.5px;font-weight:800;letter-spacing:-.3px}
+  .sh-replay:active{transform:scale(.98)}
+  .sh-recsub{display:flex;gap:6px;margin-top:7px}
+  .sh-recsub button{flex:1 1 0;padding:9px 6px;border-radius:11px;background:#fff;border:1px solid var(--line2);font-size:11px;font-weight:800;color:var(--muted)}
   .sh-prac{background:#fff;border:1.5px solid var(--line2);border-radius:20px;padding:12px 13px 11px;box-shadow:var(--shadow-sm)}
   .sh-prac .sh-en{font-size:16px;font-weight:800;line-height:1.42;letter-spacing:-.2px;color:#332A22;overflow-wrap:anywhere;word-break:keep-all}
   .sh-prac .sh-ko{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:4px;overflow-wrap:anywhere}
@@ -979,7 +993,46 @@
   /* 기본 내장 쉐도잉 레슨 — TBS 공식 클립의 실제 대사 타임코드 */
   var SH_SAMPLES = [
     {
-      title: '프렌즈 S3 · 조이의 끔찍한 실수',
+      key: 's3e01',
+      title: '프렌즈 S3 E01 · 레아 공주 판타지',
+      videoId: '9hLcsLFgLC8',
+      lines: [
+        [14.4, 20.1, "Honey, I was wondering, do you still have that Navy uniform?", "여보, 궁금한 게 있는데, 그 해군 군복 아직 있어?"],
+        [22.2, 26.5, "No, I had to return it to the costume place.", "아니, 의상실에 돌려줘야 했어."],
+        [26.6, 29.6, "I think I have an old band uniform from high school.", "고등학교 때 입던 밴드 제복이 하나 있을 거야."],
+        [30.2, 33.4, "You remember not having sex in high school, right?", "고등학교 때 우리 그런 거 안 했던 거 기억하지?"],
+        [37.5, 40.1, "Yeah. Well, honey, what about you?", "그래. 그런데 여보, 넌 어때?"],
+        [40.1, 48.5, "I mean, have any fun, you know, fantasy-type things?", "그러니까, 재미있는 거 있잖아, 판타지 같은 거."],
+        [50.5, 54.6, "No, come on. You got to have one.", "아니, 말해 봐. 하나쯤 있잖아."],
+        [55.5, 56.4, "Nope.", "없어."],
+        [56.5, 62.6, "Ross, you know what? What if you tell me? I might do it.", "로스, 있잖아. 말해 주면 나도 해 줄지 몰라."],
+        [71.1, 83.5, "Okay, um, did you ever see, um, Return of the Jedi?", "좋아, 어, '제다이의 귀환' 봤지?"],
+        [85.4, 94.8, "Yeah. Do you remember the scene with, um, Jabba the Hutt?", "응. 자바 더 헛 나오는 장면 기억해?"],
+        [94.9, 100.4, "Well, Jabba had, as his prisoner, Princess Leia.", "자바가 자기 죄수로 레아 공주를 데리고 있었잖아."],
+        [104.3, 112.9, "Princess Leia was wearing this, um, gold bikini thing.", "레아 공주가 그 금색 비키니를 입고 있었어."],
+        [113.0, 117.9, "It was pretty cool.", "꽤 멋졌어."],
+        [118.2, 120.3, "Oh, Princess Leia in the gold.", "아, 금색 옷 입은 레아 공주."],
+        [120.3, 123.9, "Every guy our age loved that.", "우리 또래 남자들은 다 그걸 좋아했어."],
+        [124.0, 127.2, "Really? It's huge.", "그래? 굉장한데."],
+        [127.2, 132.2, "That's the moment when she stopped being a princess and she became, like, a woman.", "바로 그때 그녀가 공주를 벗어나 여자가 된 거지."],
+        [134.4, 137.6, "Did you ever do the Leia thing?", "그 레아 흉내라는 거 해 봤어?"],
+        [137.6, 138.7, "Oh yeah.", "그럼."],
+        [143.4, 146.2, "Really? That great, huh?", "정말? 그렇게 좋았어?"],
+        [146.2, 149.7, "No, it's just that I got this new pager and I have it on vibrate.", "아니, 그냥 새 페이저가 생겼는데 진동으로 해 놨어."],
+        [159.1, 169.8, "Hey, oh, where is my strong Ross Skywalker to come rescue me?", "어디, 나를 구하러 올 힘센 로스 스카이워커는 어디 있나?"],
+        [169.9, 172.8, "There he is.", "저기 있네."],
+        [252.1, 255.8, "Okay, here we go. I am Jabba's prisoner.", "좋아, 간다. 나는 자바의 죄수야."],
+        [255.9, 260.4, "And you have a really weird look on your face.", "근데 네 표정이 아주 이상한데."],
+        [260.5, 264.0, "What? What is it? Did I get it wrong? Did I get the hair wrong?", "뭐야? 왜? 내가 잘못했어? 머리가 이상해?"],
+        [264.0, 265.5, "Wait, did you just picture it differently?", "잠깐, 혹시 다르게 상상했어?"],
+        [265.5, 270.0, "What? No, no. It's not you. It's um...", "뭐? 아냐 아냐. 네 문제가 아니야, 그게 어..."],
+        [274.9, 280.6, "Well, what is it? Come on, sweetie, you're kind of freaking me out here.", "대체 뭐야? 말해 봐, 여보. 나 진짜 불안해지잖아."],
+        [281.5, 286.5, "I hate Chandler. The bastard ruined my life.", "챈들러가 미워. 그 나쁜 자식이 내 인생을 망쳤어."]
+      ]
+    },
+    {
+      key: 's3e14',
+      title: '프렌즈 S3 E14 · 조이의 끔찍한 실수',
       videoId: '_4WxoTeaMZM',
       lines: [
         [3.1, 4.4, 'Is, uh, is Chandler around?', '어, 챈들러 있어?'],
@@ -1003,7 +1056,8 @@
       ]
     },
     {
-      title: '프렌즈 S3 · 로스의 바람',
+      key: 's3e16',
+      title: '프렌즈 S3 E16 · 로스의 바람',
       videoId: 'wizgxRBfVTY',
       lines: [
         [0, 1.8, 'Come on, Rachel. Come on, talk to me, please.', '레이첼, 제발 나랑 얘기 좀 해 줘.'],
@@ -1062,6 +1116,8 @@
     shIdx: 0,
     shRate: 1,
     shLoop: false,
+    shPause: true,
+    shStopAt: null,
     shHideEn: false,
     shHideKo: false,
     shScore: null,
@@ -1070,6 +1126,11 @@
     shRec: null,
     shPlaying: false,
     shAudioUrl: '',
+    shAudioType: '',
+    shAudioEl: null,
+    shRecSec: 0,
+    shRecType: '',
+    shRecTimer: null,
     shParsed: null
   };
   var rec = null;
@@ -2887,15 +2948,20 @@
   var shPlayer = null, shPlayerReady = false, shYTLoading = false, shYTQueue = [], shPlayId = null;
   var shTick = null, shSR = null, shHeard = '';
 
-  function shSampleLessons(){
-    return SH_SAMPLES.map(function(s){
+  function shSampleLessons(hidden){
+    var h = {};
+    (hidden || []).forEach(function(k){ h[k] = true; });
+    return SH_SAMPLES.filter(function(sm){ return !h[sm.key]; }).map(function(sm){
       return {
-        id: uid(), title: s.title, videoId: s.videoId, builtin: true, createdAt: now(),
-        lines: s.lines.map(function(a){ return { t: a[0], end: a[1], en: a[2], ko: a[3] }; })
+        id: uid(), key: sm.key, title: sm.title, videoId: sm.videoId, builtin: true, createdAt: now(),
+        lines: sm.lines.map(function(a){ return { t: a[0], end: a[1], en: a[2], ko: a[3] }; })
       };
     });
   }
-  function shadowFresh(){ return { version: 1, lessons: shSampleLessons(), lastId: null }; }
+  function shadowFresh(hidden){
+    var h = (hidden || []).slice();
+    return { version: 2, lessons: shSampleLessons(h), hidden: h, lastId: null };
+  }
 
   function ytIdFromUrl(input){
     var s = String(input == null ? '' : input).trim();
@@ -3040,13 +3106,21 @@
     try{
       var p = JSON.parse(raw);
       var had = !!(p && Array.isArray(p.lessons));
-      var ls = had ? p.lessons.map(normalizeLesson).filter(Boolean) : [];
+      var mine = had ? p.lessons.map(normalizeLesson).filter(Boolean) : [];
+      var hidden = (p && Array.isArray(p.hidden)) ? p.hidden.filter(function(k){ return typeof k === 'string'; }) : [];
+      /* 기본 내장 레슨은 새 코드의 기본값으로 갱신하고, 직접 추가한 레슨은 그대로 보존한다 */
+      var kept = mine.filter(function(l){ return !l.builtin; });
+      var merged = shSampleLessons(hidden).concat(kept);
+      var lastId = p && typeof p.lastId === 'string' ? p.lastId : null;
+      var keepLast = false;
+      if(lastId){ for(var i = 0; i < merged.length; i++){ if(merged[i].id === lastId){ keepLast = true; break; } } }
       shadow = {
-        version: 1,
-        /* 영상을 다 지워 빈 목록으로 저장된 경우엔 샘플을 되살리지 않는다 */
-        lessons: had ? ls : shSampleLessons(),
-        lastId: p && typeof p.lastId === 'string' ? p.lastId : null
+        version: 2,
+        lessons: merged,
+        hidden: hidden,
+        lastId: keepLast ? lastId : (merged.length ? merged[0].id : null)
       };
+      if(had) saveShadow();
     }catch(e){ shadow = shadowFresh(); }
   }
   function saveShadow(){
@@ -3112,9 +3186,32 @@
             onReady: function(){
               shPlayerReady = true;
               try{ shPlayer.setPlaybackRate(ui.shRate); }catch(e){}
+              if(shPendingPlay){ shPendingPlay = false; shPlayLine(); }
             },
             onStateChange: function(e){
               ui.shPlaying = (e.data === 1);
+              if(e.data === 1){
+                /* 유튜브 재생 버튼으로 직접 재생한 경우에도 지금 문장 끝에서 멈춘다 */
+                if(ui.shPause && ui.shStopAt == null){
+                  var ln = shLine();
+                  if(ln && ln.t != null){
+                    var ct0 = 0;
+                    try{ ct0 = shPlayer.getCurrentTime() || 0; }catch(err){}
+                    var end0 = shLineEnd(ln);
+                    if(ct0 >= ln.t - 0.4 && ct0 < end0 - 0.1){ ui.shStopAt = end0; }
+                    else {
+                      var ls0 = (shLesson() || { lines: [] }).lines, pick = null, k;
+                      for(k = 0; k < ls0.length; k++){
+                        if(ls0[k].t != null && ls0[k].t > ct0){ pick = ls0[k]; break; }
+                      }
+                      if(pick) ui.shStopAt = shLineEnd(pick);
+                    }
+                  }
+                }
+                startShTick();
+              }else{
+                ui.shStopAt = null;
+              }
               shRenderCtrl();
             },
             onError: function(){
@@ -3130,31 +3227,82 @@
     try{ if(shPlayer && shPlayer.setPlaybackRate) shPlayer.setPlaybackRate(r); }catch(e){}
     shRenderCtrl();
   }
-  function shGoTo(t){
-    if(t == null) return;
+  var shPendingPlay = false;
+  function shLineEnd(line){
+    if(!line || line.t == null) return null;
+    if(line.end != null) return line.end;
+    var dur = 4;
+    try{
+      if(shPlayer && shPlayer.getDuration){
+        var d = shPlayer.getDuration() || 0;
+        if(d > 0 && line.t + dur > d) return Math.max(line.t + 1, d - 0.3);
+      }
+    }catch(e){}
+    return line.t + dur;
+  }
+  /* 한 문장만 재생: 시작점으로 이동해 재생하고, 끝에서 자동 일시정지 */
+  function shPlayLine(){
+    var line = shLine();
+    if(!line) return;
+    if(line.t == null){ shSpeakLine(); return; }   /* 타임코드가 없으면 AI 발음으로 대신 */
     if(!shPlayerReady || !shPlayer){
-      toast('영상이 아직 준비 중이에요. 잠시 뒤 다시 눌러 주세요.', true);
+      shPendingPlay = true;
+      toast('영상을 준비하고 있어요. 잠시 뒤 다시 눌러 주세요.', true);
       return;
     }
+    ui.shStopAt = shLineEnd(line);
     try{
-      shPlayer.seekTo(t, true);
+      shPlayer.seekTo(line.t, true);
       shPlayer.playVideo();
     }catch(e){}
-    startShLoop();
+    startShTick();
+    shRenderCtrl();
   }
-  function startShLoop(){
+  function shNextLine(){
+    var l = shLesson();
+    if(!l) return;
+    var i = Math.min(Math.max(0, Number(ui.shIdx) || 0), l.lines.length - 1);
+    if(i >= l.lines.length - 1){ toast('마지막 문장이에요.'); return; }
+    ui.shIdx = i + 1;
+    ui.shScore = null; ui.shLive = ''; shHeard = '';
+    shRenderPrac(); shRenderLines();
+    shPlayLine();
+  }
+  function shPrevLine(){
+    var l = shLesson();
+    if(!l) return;
+    var i = Math.min(Math.max(0, Number(ui.shIdx) || 0), l.lines.length - 1);
+    if(i <= 0){ toast('첫 문장이에요.'); return; }
+    ui.shIdx = i - 1;
+    ui.shScore = null; ui.shLive = ''; shHeard = '';
+    shRenderPrac(); shRenderLines();
+    shPlayLine();
+  }
+  function startShTick(){
     if(shTick) return;
     shTick = setInterval(function(){
-      if(!ui.shLoop || !ui.shPlaying || !shPlayerReady || !shPlayer || !shPlayer.getCurrentTime) return;
+      if(!shPlayerReady || !shPlayer || !shPlayer.getCurrentTime) return;
       var line = shLine();
-      if(!line || line.t == null) return;
-      var end = line.end != null ? line.end : line.t + 5;
       var ct = 0;
       try{ ct = shPlayer.getCurrentTime() || 0; }catch(e){ return; }
-      if(ct >= end - 0.08 || ct < line.t - 0.6){
-        try{ shPlayer.seekTo(line.t, true); }catch(e){}
+      /* 문장 반복: 끝에 닿으면 정지 대신 그 문장 처음으로 되감아 반복 */
+      if(ui.shLoop && line && line.t != null){
+        var endL = shLineEnd(line);
+        if(endL == null) return;
+        if(ct >= endL - 0.08 || ct < line.t - 0.7){
+          try{ shPlayer.seekTo(line.t, true); }catch(e){}
+          if(!ui.shPlaying){ try{ shPlayer.playVideo(); }catch(e){} }
+        }
+        return;
       }
-    }, 200);
+      /* 한 문장 멈춤: 고른 문장의 끝 시점에서 자동 일시정지 */
+      if(ui.shPause && ui.shStopAt != null && ct >= ui.shStopAt - 0.05){
+        ui.shStopAt = null;
+        try{ shPlayer.pauseVideo(); }catch(e){}
+        ui.shPlaying = false;
+        shRenderCtrl();
+      }
+    }, 150);
   }
 
   /* 화면 */
@@ -3195,12 +3343,18 @@
     var rates = [0.7, 0.85, 1].map(function(r){
       return '<button class="' + (Math.abs(ui.shRate - r) < 0.001 ? 'on' : '') + '" data-action="sh-rate" data-rate="' + r + '">' + String(r).replace(/0$/, '') + 'x</button>';
     }).join('');
+    var hasT = l.lines.some(function(x){ return x.t != null; });
     box.innerHTML =
+      '<button class="sh-b' + (ui.shPause ? ' on' : '') + '" data-action="sh-pause">한 문장 멈춤 ' + (ui.shPause ? 'ON' : 'OFF') + '</button>' +
       '<button class="sh-b' + (ui.shLoop ? ' on' : '') + '" data-action="sh-loop">문장 반복' + (ui.shLoop ? ' 중' : '') + '</button>' +
-      '<button class="sh-b" data-action="sh-back" data-sec="3">-3초</button>' +
-      '<button class="sh-b" data-action="sh-back" data-sec="5">-5초</button>' +
+      (hasT ? '<button class="sh-b" data-action="sh-back" data-sec="3">-3초</button>' : '') +
       '<span class="sh-rates">' + rates + '</span>' +
-      '<button class="sh-b warn" data-action="sh-del-lesson">영상 삭제</button>';
+      '<div class="sh-nav" style="flex:1 1 100%;margin-top:7px">' +
+        '<button data-action="sh-prev"><b>◀</b> 이전</button>' +
+        '<button data-action="sh-again"><b>↻</b> 다시 듣기</button>' +
+        '<button class="main" data-action="sh-next">다음 문장 <b>▶</b></button>' +
+      '</div>' +
+      '<button class="sh-b warn" data-action="sh-del-lesson" style="margin-left:auto">영상 삭제</button>';
   }
   function shRenderPrac(){
     var box = document.getElementById('shPrac');
@@ -3208,22 +3362,33 @@
     var l = shLesson(), line = shLine();
     if(!l || !line){ box.innerHTML = ''; return; }
     var idx = Math.min(Math.max(0, Number(ui.shIdx) || 0), l.lines.length - 1);
+    var hasT = line.t != null;
     var html = '<div class="sh-prac">';
     html += '<div class="sh-score" style="margin-top:0;padding-top:0;border-top:none;display:flex;align-items:center;justify-content:space-between;gap:8px">' +
-      '<span class="sh-pick">' + (idx + 1) + ' / ' + l.lines.length + '문장' + (line.t != null ? ' · ' + mmss(line.t) : '') + '</span>' +
+      '<span class="sh-pick">' + (idx + 1) + ' / ' + l.lines.length + '문장' + (hasT ? ' · ' + mmss(line.t) : ' · 타임코드 없음') + '</span>' +
       '<span style="display:flex;gap:4px;flex:0 0 auto">' +
         '<button class="sh-b' + (ui.shHideEn ? ' on' : '') + '" data-action="sh-hide-en" style="padding:5px 8px;font-size:10.5px">영어 ' + (ui.shHideEn ? '보기' : '가리기') + '</button>' +
         '<button class="sh-b' + (ui.shHideKo ? ' on' : '') + '" data-action="sh-hide-ko" style="padding:5px 8px;font-size:10.5px">한글 ' + (ui.shHideKo ? '보기' : '가리기') + '</button>' +
       '</span></div>';
     if(!ui.shHideEn) html += '<div class="sh-en" style="margin-top:6px">' + esc(line.en || '—') + '</div>';
     if(!ui.shHideKo && line.ko) html += '<div class="sh-ko">' + esc(line.ko) + '</div>';
+    html += '<div class="sh-nav">' +
+      '<button data-action="sh-prev"><b>◀</b> 이전</button>' +
+      '<button data-action="sh-again"><b>↻</b> 다시 듣기</button>' +
+      '<button class="main" data-action="sh-next">다음 문장 <b>▶</b></button>' +
+    '</div>';
     html += '<div class="sh-acts">' +
-      '<button class="sh-act" data-action="sh-tts"><b>▶</b>듣기</button>' +
+      '<button class="sh-act" data-action="sh-listen-line"><b>▶</b>' + (hasT ? '듣기' : 'AI 발음') + '</button>' +
       '<button class="sh-act' + (ui.shListening ? ' on' : '') + '" data-action="sh-listen"><b>●</b>' + (ui.shListening ? '듣는 중' : '말하기') + '</button>' +
       '<button class="sh-act' + (ui.shRec ? ' rec' : '') + '" data-action="sh-rec"><b>' + (ui.shRec ? '■' : '○') + '</b>' + (ui.shRec ? '정지' : '녹음') + '</button>' +
       '<button class="sh-act" data-action="sh-card"><b>＋</b>카드</button>' +
     '</div>';
+    if(hasT) html += '<button class="sh-ai" data-action="sh-tts">AI 발음으로 듣기</button>';
 
+    if(ui.shRec){
+      html += '<div class="sh-recbox"><div class="rb-top"><span><span class="dot"></span>녹음 중 <span id="shRecTime">' + mmss(ui.shRecSec) + '</span></span>' +
+        '<span>정지하면 저장돼요</span></div></div>';
+    }
     if(ui.shListening){
       html += '<div class="sh-score"><div class="sc-top"><span>영어로 따라 말해 보세요…</span></div>' +
         '<div class="sc-heard" id="shLiveTxt">' + esc(ui.shLive || '…') + '</div></div>';
@@ -3239,8 +3404,16 @@
       '</div>';
     }
     if(ui.shAudioUrl){
-      html += '<div class="sh-audio"><audio id="shAudio" controls preload="metadata" src="' + ui.shAudioUrl + '"></audio>' +
-        '<button class="sh-b" data-action="sh-audio-del">지우기</button></div>';
+      html += '<div class="sh-recbox">' +
+        '<div class="rb-top"><span>내 녹음' + (ui.shRecSec ? ' · ' + mmss(ui.shRecSec) : '') + '</span>' +
+          '<span>' + esc(String(ui.shAudioType || '').split(';')[0].replace('audio/', '')) + '</span></div>' +
+        '<button class="sh-replay" data-action="sh-play-rec">▶ 내 녹음 듣기</button>' +
+        '<div class="sh-recsub">' +
+          '<button data-action="sh-rec">다시 녹음</button>' +
+          '<button data-action="sh-audio-del">녹음 삭제</button>' +
+        '</div>' +
+        '<audio id="shAudio" preload="metadata" style="display:none" src="' + ui.shAudioUrl + '"></audio>' +
+      '</div>';
     }
     html += '</div>';
     box.innerHTML = html;
@@ -3267,6 +3440,11 @@
     ui.shIdx = 0;
     ui.shScore = null;
     shHeard = '';
+    ui.shStopAt = null;
+    shPendingPlay = false;
+    ui.shAudioUrl = '';
+    ui.shAudioType = '';
+    ui.shRecSec = 0;
     shadow.lastId = id;
     saveShadow();
     var l = shLesson();
@@ -3279,12 +3457,12 @@
     i = Math.min(Math.max(0, Number(i) || 0), l.lines.length - 1);
     ui.shIdx = i;
     ui.shScore = null;
+    ui.shLive = '';
     shHeard = '';
+    ui.shStopAt = null;
     shRenderPrac();
     shRenderLines();
-    var line = l.lines[i];
-    if(line && line.t != null) shGoTo(line.t);
-    if(ui.shLoop) startShLoop();
+    shPlayLine();
   }
   function shBackSec(sec){
     if(!shPlayerReady || !shPlayer || !shPlayer.getCurrentTime){ toast('영상이 아직 준비 중이에요.', true); return; }
@@ -3389,6 +3567,21 @@
       toast('말하기를 시작할 수 없어요. 잠시 뒤 다시 눌러 주세요.', true);
     }
   }
+  function recMimeList(){
+    return ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm'];
+  }
+  function pickRecMime(){
+    var MR = window.MediaRecorder;
+    if(!MR || typeof MR.isTypeSupported !== 'function') return '';
+    var list = recMimeList(), i;
+    for(i = 0; i < list.length; i++){
+      try{ if(MR.isTypeSupported(list[i])) return list[i]; }catch(e){}
+    }
+    return '';
+  }
+  function stopRecTimer(){
+    if(ui.shRecTimer){ clearInterval(ui.shRecTimer); ui.shRecTimer = null; }
+  }
   function shToggleRec(){
     if(ui.shRec){ try{ ui.shRec.stop(); }catch(e){} return; }
     var line = shLine();
@@ -3398,40 +3591,93 @@
       return;
     }
     navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
-      var chunks = [], mime = '';
-      try{
-        if(window.MediaRecorder.isTypeSupported('audio/mp4')) mime = 'audio/mp4';
-        else if(window.MediaRecorder.isTypeSupported('audio/webm')) mime = 'audio/webm';
-      }catch(e){}
-      var mr;
-      try{ mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
-      catch(e){ try{ mr = new MediaRecorder(stream); }catch(e2){ mr = null; } }
+      var chunks = [], mime = pickRecMime(), mr = null;
+      if(mime){ try{ mr = new MediaRecorder(stream, { mimeType: mime }); }catch(e){ mr = null; } }
+      if(!mr){ try{ mr = new MediaRecorder(stream); }catch(e2){ mr = null; } }
       if(!mr){
         try{ stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
         toast('녹음을 시작하지 못했어요.', true);
         return;
       }
+      var realType = '';
+      try{ realType = mr.mimeType || mime || ''; }catch(e){}
       ui.shRec = mr;
+      ui.shRecSec = 0;
+      ui.shRecType = realType;
+      stopRecTimer();
+      ui.shRecTimer = setInterval(function(){
+        if(!ui.shRec){ stopRecTimer(); return; }
+        ui.shRecSec = (Number(ui.shRecSec) || 0) + 1;
+        var el = document.getElementById('shRecTime');
+        if(el) el.textContent = mmss(ui.shRecSec);
+      }, 1000);
       mr.ondataavailable = function(ev){ if(ev.data && ev.data.size) chunks.push(ev.data); };
       mr.onstop = function(){
+        stopRecTimer();
         try{ stream.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+        var url = '', type = '';
         try{
-          var blob = new Blob(chunks, { type: (chunks[0] && chunks[0].type) || mime || 'audio/mp4' });
-          if(ui.shAudioUrl){ try{ URL.revokeObjectURL(ui.shAudioUrl); }catch(e){} }
-          ui.shAudioUrl = blob.size ? URL.createObjectURL(blob) : '';
-        }catch(e){ ui.shAudioUrl = ''; }
+          var blob = new Blob(chunks, { type: (chunks[0] && chunks[0].type) || realType || 'audio/mp4' });
+          type = blob.type || realType;
+          if(blob.size){
+            if(ui.shAudioUrl){ try{ URL.revokeObjectURL(ui.shAudioUrl); }catch(e){} }
+            url = URL.createObjectURL(blob);
+          }
+        }catch(e){ url = ''; }
+        ui.shAudioUrl = url;
+        ui.shAudioType = url ? (type || ui.shRecType) : '';
         ui.shRec = null;
         shRenderPrac();
-        if(ui.shAudioUrl) toast('녹음했어요. 아래에서 내 발음을 들어 보세요.');
+        if(url) toast('녹음했어요. "▶ 내 녹음 듣기"를 눌러 들어 보세요.');
+        else toast('녹음이 저장되지 않았어요. 다시 한 번 시도해 주세요.', true);
       };
-      mr.start();
+      try{ mr.start(1000); }catch(e){ try{ mr.start(); }catch(e2){} }
       shRenderPrac();
     }).catch(function(){
+      stopRecTimer();
       ui.shRec = null;
       shRenderPrac();
       toast('마이크를 허용해 주셔야 녹음할 수 있어요. 브라우저 설정에서 마이크를 켜 주세요.', true);
     });
   }
+  function shListenLine(){
+    var line = shLine();
+    if(!line) return;
+    if(line.t != null) shPlayLine();
+    else shSpeakLine();
+  }
+  function shPlayRecAudio(){
+    if(!ui.shAudioUrl) return false;
+    try{
+      if(ui.shAudioEl){ try{ ui.shAudioEl.pause(); }catch(e){} }
+      var a = new Audio(ui.shAudioUrl);
+      ui.shAudioEl = a;
+      var p = a.play();
+      if(p && p.catch){ p.catch(function(){ toast('녹음을 재생하지 못했어요. 한 번 더 눌러 주세요.', true); }); }
+      return true;
+    }catch(e){ return false; }
+  }
+  function shPlayRec(){
+    if(!ui.shAudioUrl){ toast('먼저 녹음해 주세요.', true); return; }
+    var el = document.getElementById('shAudio');
+    if(el){
+      try{
+        el.pause();
+        el.currentTime = 0;
+      }catch(e){}
+      try{
+        var p = el.play();
+        if(p && p.catch){
+          p.catch(function(){
+            if(!shPlayRecAudio()) toast('녹음을 재생하지 못했어요. 한 번 더 눌러 주세요.', true);
+          });
+        }
+        return;
+      }catch(e){}
+    }
+    shPlayRecAudio();
+  }
+
   function shAddCard(){
     var line = shLine();
     if(!line || !line.en){ toast('영어 문장이 없어요.', true); return; }
@@ -3461,9 +3707,14 @@
     if(!l) return;
     if(!window.confirm('"' + l.title + '" 영상을 지울까요?\n대본도 함께 지워져요.')) return;
     shadow.lessons = shadow.lessons.filter(function(x){ return x.id !== l.id; });
+    if(l.builtin && l.key){
+      if(!Array.isArray(shadow.hidden)) shadow.hidden = [];
+      if(shadow.hidden.indexOf(l.key) < 0) shadow.hidden.push(l.key);
+    }
     ui.shLessonId = shadow.lessons.length ? shadow.lessons[0].id : '';
     ui.shIdx = 0;
     ui.shScore = null;
+    ui.shStopAt = null;
     saveShadow();
     if(!shadow.lessons.length){
       try{ if(shPlayer && shPlayer.stopVideo) shPlayer.stopVideo(); }catch(e){}
@@ -3644,20 +3895,33 @@
     if(action === 'reset'){ resetAll(); return; }
     if(action === 'sh-pick'){ shPickLesson(el.dataset.id); return; }
     if(action === 'sh-line'){ shPickLine(el.dataset.i); return; }
+    if(action === 'sh-pause'){
+      ui.shPause = !ui.shPause;
+      if(!ui.shPause) ui.shStopAt = null;
+      shRenderCtrl();
+      return;
+    }
     if(action === 'sh-loop'){
       ui.shLoop = !ui.shLoop;
       if(ui.shLoop){
         var sl = shLine();
-        if(sl && sl.t != null) shGoTo(sl.t); else startShLoop();
+        if(sl && sl.t != null) shPlayLine();
+        else startShTick();
       }
       shRenderCtrl();
       return;
     }
+    if(action === 'sh-prev'){ shPrevLine(); return; }
+    if(action === 'sh-next'){ shNextLine(); return; }
+    if(action === 'sh-again'){ shPlayLine(); return; }
+    if(action === 'sh-listen-line'){ shListenLine(); return; }
+    if(action === 'sh-play-rec'){ shPlayRec(); return; }
     if(action === 'sh-back'){ shBackSec(el.dataset.sec); return; }
     if(action === 'sh-rate'){ shSetRate(Number(el.dataset.rate)); return; }
     if(action === 'sh-hide-en'){ ui.shHideEn = !ui.shHideEn; shRenderPrac(); shRenderLines(); return; }
     if(action === 'sh-hide-ko'){ ui.shHideKo = !ui.shHideKo; shRenderPrac(); shRenderLines(); return; }
     if(action === 'sh-tts'){ shSpeakLine(); return; }
+    if(action === 'sh-rec-again'){ shToggleRec(); return; }
     if(action === 'sh-listen'){ shListen(); return; }
     if(action === 'sh-rec'){ shToggleRec(); return; }
     if(action === 'sh-card'){ shAddCard(); return; }
@@ -3667,8 +3931,11 @@
     if(action === 'sh-save'){ shSaveLesson(); return; }
     if(action === 'sh-pick-file'){ $('#shFile').click(); return; }
     if(action === 'sh-audio-del'){
+      if(ui.shAudioEl){ try{ ui.shAudioEl.pause(); }catch(e){} ui.shAudioEl = null; }
       if(ui.shAudioUrl){ try{ URL.revokeObjectURL(ui.shAudioUrl); }catch(e){} }
       ui.shAudioUrl = '';
+      ui.shAudioType = '';
+      ui.shRecSec = 0;
       shRenderPrac();
       return;
     }
