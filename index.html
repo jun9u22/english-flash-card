@@ -3482,6 +3482,9 @@
     if(open){
       setTimeout(function(){ var u = document.getElementById('shUrl'); if(u) u.focus(); }, 60);
       box.scrollIntoView({ block: 'nearest' });
+    }else{
+      var m = document.getElementById('main');
+      if(m) m.scrollTop = 0;
     }
   }
   function shPreview(){
@@ -3525,6 +3528,8 @@
     shToggleAdd(false);
     shRender(true);
     renderStats();
+    var mEl = document.getElementById('main');
+    if(mEl) mEl.scrollTop = 0;
     toast('영상을 추가했어요 · ' + lines.length + '문장');
   }
 
