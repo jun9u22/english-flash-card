@@ -2218,7 +2218,7 @@
   var bm = null;                        /* { id, at } — 마지막으로 들주던/북마크한 카드 */
   var seq = {                           /* 연속 듣기 플레이어 상태 */
     on: false, paused: false, list: [], idx: 0, phase: 'en',
-    utt: null, timer: null, gap: null, gen: 0
+    utt: null, timer: null, gap: null, gen: 0, retry: 0
   };
   /* 의도적으로 끈 음성의 onerror가 '재생 실패'로 처리되지 않도록 세대 번호를 올린다 */
   function seqCancelSpeech(){
@@ -2319,13 +2319,23 @@
       if(gen !== (seq.gen || 0)) return;
       done();
     }
-    u.onend = fin;
-    u.onerror = function(){
+    u.onend = function(){ seq.retry = 0; fin(); };
+    u.onerror = function(ev){
       if(fired) return;
       fired = true;
       if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
       if(gen !== (seq.gen || 0)) return;
-      if(seq.on){ seqStop(false); toast('음을 재생하지 못했어요. 잠시 뒤 다시 눌러 주세요.', true); }
+      if(!seq.on) return;
+      var code = String((ev && ev.error) || '');
+      /* 취소·중단은 의도한 경우가 많다 — 한두 번은 같은 문장을 다시 읽어 본다 */
+      if(/interrupt|cancel/i.test(code) && (seq.retry || 0) < 2){
+        seq.retry = (seq.retry || 0) + 1;
+        if(seq.gap) clearTimeout(seq.gap);
+        seq.gap = setTimeout(function(){ seq.gap = null; if(seq.on) seqSpeakPhase(); }, 180);
+        return;
+      }
+      seqStop(false);
+      toast('음을 재생하지 못했어요. 잠시 뒤 다시 눌러 주세요.', true);
     };
     seq.utt = u;
     try{ window.speechSynthesis.speak(u); }
@@ -2387,6 +2397,7 @@
   }
   function seqAdvancePhase(){
     if(!seq.on) return;
+    seq.retry = 0;
     if(seq.phase === 'en'){
       seq.phase = 'ko';
       seqShowCard();
@@ -2413,8 +2424,10 @@
     seq.phase = 'en';
     seq.on = true;
     seq.paused = false;
+    seq.retry = 0;
     seqShowCard();
-    seqSpeakPhase();
+    if(seq.gap) clearTimeout(seq.gap);
+    seq.gap = setTimeout(function(){ seq.gap = null; if(seq.on) seqSpeakPhase(); }, 90);
   }
   function seqStop(quiet){
     seq.on = false;
@@ -2451,8 +2464,11 @@
     seq.phase = 'en';
     seq.on = true;
     seq.paused = false;
+    seq.retry = 0;
     seqShowCard();
-    seqSpeakPhase();
+    seqCancelSpeech();
+    if(seq.gap) clearTimeout(seq.gap);
+    seq.gap = setTimeout(function(){ seq.gap = null; if(seq.on) seqSpeakPhase(); }, 90);
   }
   function seqStep(d){
     if(isSpeech()) return;
@@ -2465,6 +2481,7 @@
     if(i === base){ toast(d > 0 ? '마지막 카드예요.' : '첫 카드예요.'); return; }
     seq.idx = i;
     seq.phase = 'en';
+    seq.retry = 0;
     if(!live){
       seqShowCard();
       renderSeqBar();
@@ -2476,7 +2493,8 @@
     if(seq.timer){ clearTimeout(seq.timer); seq.timer = null; }
     seqCancelSpeech();
     seqShowCard();
-    seqSpeakPhase();
+    if(seq.gap) clearTimeout(seq.gap);
+    seq.gap = setTimeout(function(){ seq.gap = null; if(seq.on) seqSpeakPhase(); }, 90);
   }
   function seqFinish(){
     seq.on = false;
