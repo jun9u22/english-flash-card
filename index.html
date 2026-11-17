@@ -559,6 +559,8 @@
   .sc-say{display:block;width:100%;margin-top:7px;padding:10px 10px;border-radius:11px;background:#fff;border:1.5px solid #F3B7A2;color:#B4573C;font-size:12.5px;font-weight:800;letter-spacing:-.2px}
   .sc-say:active{transform:scale(.99)}
   .sc-say:disabled{opacity:.42;background:#FFF9F2;border-color:var(--line);color:var(--muted)}
+  .sc-say.on{background:#FFF1EA;border-color:#E9A98F;color:#A3482D}
+  .sc-note{margin-top:7px;font-size:10.8px;font-weight:600;color:var(--muted);line-height:1.55;letter-spacing:-.2px}
   .wchips{margin-top:7px;line-height:1.9}
   .wchip{display:inline-block;padding:1px 6px;margin:2px 3px 0 0;border-radius:7px;font-size:12px;font-weight:700}
   .wchip.ok{background:#E9F8F1;border:1px solid #C6ECDD;color:#2F8568}
@@ -1134,6 +1136,11 @@
     shRecSec: 0,
     shRecType: '',
     shRecTimer: null,
+    shTake: null,
+    shTakeNote: '',
+    shTakeBlocked: false,
+    shScAudioEl: null,
+    shScPlaying: false,
     shParsed: null
   };
   var rec = null;
@@ -3268,7 +3275,7 @@
     var i = Math.min(Math.max(0, Number(ui.shIdx) || 0), l.lines.length - 1);
     if(i >= l.lines.length - 1){ toast('마지막 문장이에요.'); return; }
     ui.shIdx = i + 1;
-    ui.shScore = null; ui.shLive = ''; shHeard = '';
+    shScoreClear(); ui.shLive = ''; shHeard = '';
     shRenderPrac(); shRenderLines();
     shPlayLine();
   }
@@ -3278,7 +3285,7 @@
     var i = Math.min(Math.max(0, Number(ui.shIdx) || 0), l.lines.length - 1);
     if(i <= 0){ toast('첫 문장이에요.'); return; }
     ui.shIdx = i - 1;
-    ui.shScore = null; ui.shLive = ''; shHeard = '';
+    shScoreClear(); ui.shLive = ''; shHeard = '';
     shRenderPrac(); shRenderLines();
     shPlayLine();
   }
@@ -3394,7 +3401,7 @@
         '<span>정지하면 저장돼요</span></div></div>';
     }
     if(ui.shListening){
-      html += '<div class="sh-score"><div class="sc-top"><span>영어로 따라 말해 보세요…</span></div>' +
+      html += '<div class="sh-score"><div class="sc-top"><span>영어로 따라 말해 보세요…' + (ui.shTake && ui.shTake.used ? '<i style="font-style:normal;font-weight:800;color:#B4573C"> · 내 목소리 녹음 중</i>' : '') + '</span></div>' +
         '<div class="sc-heard" id="shLiveTxt">' + esc(ui.shLive || '…') + '</div></div>';
     }else if(ui.shScore){
       var sc = ui.shScore;
@@ -3405,7 +3412,9 @@
         }).join('') + '</div>' +
         (sc.said ? '<div class="sc-heard"><i>들은 말</i> · ' + esc(sc.said) + '</div>' :
           '<div class="sc-heard"><i>들은 말이 없어요</i> · 마이크 가까이에서 다시 말해 보세요.</div>') +
-        '<button class="sc-say" data-action="sh-say-heard"' + (sc.said ? '' : ' disabled') + '>▶ 말한 문장 듣기</button>' +
+        '<button class="sc-say' + (ui.shScPlaying ? ' on' : '') + '" data-action="sh-say-heard"' + (sc.audioUrl ? '' : ' disabled') + '>' +
+          (ui.shScPlaying ? '■ 멈춤' : '▶ 말한 문장 듣기') + '</button>' +
+        (sc.audioUrl ? '' : '<div class="sc-note">' + esc(sc.audioPending && ui.shTake ? '말한 목소리를 준비하고 있어요…' : shTakeNoteText()) + '</div>') +
       '</div>';
     }
     if(ui.shAudioUrl){
@@ -3443,7 +3452,7 @@
     if(ui.shLessonId === id) return;
     ui.shLessonId = id;
     ui.shIdx = 0;
-    ui.shScore = null;
+    shScoreClear();
     shHeard = '';
     ui.shStopAt = null;
     shPendingPlay = false;
@@ -3461,7 +3470,7 @@
     if(!l) return;
     i = Math.min(Math.max(0, Number(i) || 0), l.lines.length - 1);
     ui.shIdx = i;
-    ui.shScore = null;
+    shScoreClear();
     ui.shLive = '';
     shHeard = '';
     ui.shStopAt = null;
@@ -3544,6 +3553,185 @@
       said: String(said == null ? '' : said).trim()
     };
   }
+  /* ---------- 말하기 중 내 목소리 녹음 (AI 음성 대신 실제 육성 재생) ---------- */
+  var shTakeSeq = 0;
+  function shTakeSupported(){
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && typeof window.MediaRecorder !== 'undefined');
+  }
+  function shTakeNoteText(){
+    if(ui.shTakeNote === 'blocked') return '이 기기에서는 말하는 동안 목소리 녹음이 같이 되지 않아요. 내 목소리는 아래 "녹음" 버튼으로 남겨 주세요.';
+    if(ui.shTakeNote === 'denied') return '마이크 녹음을 허용해야 내 목소리를 들을 수 있어요. 아래 "녹음" 버튼으로도 남길 수 있어요.';
+    if(ui.shTakeNote === 'unsupported') return '이 브라우저는 말하는 동안 목소리 녹음을 지원하지 않아요. 아래 "녹음" 버튼을 이용해 주세요.';
+    return '말한 목소리가 저장되지 않았어요. 아래 "녹음" 버튼으로 남겨 주세요.';
+  }
+  function shTakeKill(take){
+    if(!take) return;
+    take.cancelled = true;
+    if(take.timeout){ clearTimeout(take.timeout); take.timeout = null; }
+    try{ if(take.mr && take.mr.state !== 'inactive') take.mr.stop(); }catch(e){}
+    try{ if(take.stream) take.stream.getTracks().forEach(function(k){ k.stop(); }); }catch(e){}
+    take.stream = null;
+    if(take.chunks) take.chunks.length = 0;
+    if(take.url){ try{ URL.revokeObjectURL(take.url); }catch(e){} take.url = ''; }
+    if(ui.shTake === take) ui.shTake = null;
+  }
+  function shTakeStart(){
+    if(ui.shTakeBlocked){
+      ui.shTakeNote = 'blocked';
+      return null;
+    }
+    if(!shTakeSupported()){
+      ui.shTakeNote = 'unsupported';
+      return null;
+    }
+    var take = { id: ++shTakeSeq, mr: null, stream: null, chunks: [], url: '', type: '', used: false,
+                 cancelled: false, delivered: false, stopRequested: false, timeout: null };
+    ui.shTake = take;
+    ui.shTakeNote = '';
+    var p = null;
+    try{ p = navigator.mediaDevices.getUserMedia({ audio: true }); }catch(e){ p = null; }
+    if(!p || typeof p.then !== 'function'){
+      ui.shTake = null;
+      ui.shTakeNote = 'unsupported';
+      return null;
+    }
+    p.then(function(stream){
+      /* 말하기가 이미 끝났거나 취소됐으면 아무것도 남기지 않는다 */
+      if(take.cancelled || ui.shTake !== take || (take.stopRequested && !take.used)){
+        try{ stream.getTracks().forEach(function(k){ k.stop(); }); }catch(e){}
+        if(!take.cancelled && ui.shTake === take){
+          ui.shTake = null;
+          if(ui.shTakeNote !== 'denied') ui.shTakeNote = ui.shTakeNote || 'empty';
+          var scx = ui.shScore;
+          if(scx && scx.takeId === take.id && !scx.audioUrl){ scx.audioPending = false; }
+          if(ui.shScore) shRenderPrac();
+          else if(ui.shListening) shRenderPrac();
+        }
+        return;
+      }
+      take.stream = stream;
+      var mime = pickRecMime(), mr = null;
+      /* 음성인식이 마이크를 잡고 있어도 녹음기가 따로 생기지 않을 수 있으니 전부 try/catch */
+      try{ if(mime) mr = new MediaRecorder(stream, { mimeType: mime }); }catch(e){ mr = null; }
+      if(!mr){ try{ mr = new MediaRecorder(stream); }catch(e2){ mr = null; } }
+      if(!mr){
+        try{ stream.getTracks().forEach(function(k){ k.stop(); }); }catch(e){}
+        take.stream = null;
+        if(ui.shTake === take) ui.shTake = null;
+        ui.shTakeNote = 'unsupported';
+        if(ui.shScore && !ui.shScore.audioUrl){ ui.shScore.audioPending = false; shRenderPrac(); }
+        else if(ui.shListening) shRenderPrac();
+        return;
+      }
+      take.mr = mr;
+      try{ take.type = mr.mimeType || mime || ''; }catch(e){ take.type = mime || ''; }
+      mr.ondataavailable = function(ev){ if(ev.data && ev.data.size) take.chunks.push(ev.data); };
+      mr.onstop = function(){ shTakeDeliver(take); };
+      try{ mr.start(500); }catch(e){ try{ mr.start(); }catch(e2){} }
+      take.used = true;
+      if(ui.shListening) shRenderPrac();
+      if(take.stopRequested){ try{ if(mr.state !== 'inactive') mr.stop(); }catch(e){} }
+    }).catch(function(){
+      if(ui.shTake === take) ui.shTake = null;
+      ui.shTakeNote = 'denied';
+      if(ui.shScore && !ui.shScore.audioUrl){ ui.shScore.audioPending = false; shRenderPrac(); }
+      else if(ui.shListening) shRenderPrac();
+    });
+    return take;
+  }
+  function shTakeStop(take){
+    if(!take || take.delivered || take.cancelled) return;
+    take.stopRequested = true;
+    if(take.timeout){ clearTimeout(take.timeout); }
+    /* 오디오가 끝내 안 오면 조용히 넘어가고 버튼에 안내만 남긴다 */
+    take.timeout = setTimeout(function(){
+      if(take.delivered || take.cancelled) return;
+      if(ui.shTakeNote !== 'denied') ui.shTakeNote = ui.shTakeNote || 'empty';
+      shTakeKill(take);
+      var sc = ui.shScore;
+      if(sc && sc.takeId === take.id && !sc.audioUrl){ sc.audioPending = false; shRenderPrac(); }
+    }, 2500);
+    if(take.mr){
+      try{ if(take.mr.state !== 'inactive') take.mr.stop(); }catch(e){}
+    }
+  }
+  function shTakeDeliver(take){
+    if(take.delivered) return;
+    take.delivered = true;
+    if(take.timeout){ clearTimeout(take.timeout); take.timeout = null; }
+    try{ if(take.stream) take.stream.getTracks().forEach(function(k){ k.stop(); }); }catch(e){}
+    take.stream = null;
+    if(ui.shTake === take) ui.shTake = null;
+    if(take.cancelled) return;
+    var url = '', type = '';
+    try{
+      var blob = new Blob(take.chunks, { type: (take.chunks[0] && take.chunks[0].type) || take.type || 'audio/mp4' });
+      type = blob.type || take.type || '';
+      if(blob && blob.size > 0) url = URL.createObjectURL(blob);
+    }catch(e){ url = ''; }
+    take.chunks = [];
+    var sc = ui.shScore;
+    if(!sc || sc.takeId !== take.id){
+      if(url){ try{ URL.revokeObjectURL(url); }catch(e){} }
+      return;
+    }
+    if(!url){
+      if(ui.shTakeNote !== 'denied') ui.shTakeNote = 'empty';
+      sc.audioPending = false;
+      shRenderPrac();
+      return;
+    }
+    if(sc.audioUrl){ try{ URL.revokeObjectURL(sc.audioUrl); }catch(e){} }
+    sc.audioUrl = url;
+    sc.audioType = type;
+    sc.audioPending = false;
+    ui.shTakeNote = '';
+    shRenderPrac();
+  }
+  function shTakeStopPlay(){
+    if(ui.shScAudioEl){ try{ ui.shScAudioEl.pause(); }catch(e){} ui.shScAudioEl = null; }
+    if(ui.shScPlaying){ ui.shScPlaying = false; shRenderPrac(); }
+  }
+  function shScoreClear(){
+    if(ui.shTake) shTakeKill(ui.shTake);
+    if(ui.shScAudioEl){ try{ ui.shScAudioEl.pause(); }catch(e){} ui.shScAudioEl = null; }
+    ui.shScPlaying = false;
+    var old = ui.shScore;
+    if(old && old.audioUrl){ try{ URL.revokeObjectURL(old.audioUrl); }catch(e){} }
+    ui.shScore = null;
+    ui.shTakeNote = '';
+  }
+  function shPlayHeard(){
+    var sc = ui.shScore;
+    if(!sc) return;
+    if(!sc.audioUrl){
+      toast('내 목소리 녹음이 아직 없어요. 아래 "녹음" 버튼으로 남겨 주세요.', true);
+      return;
+    }
+    var a = ui.shScAudioEl;
+    if(a && !a.paused){ shTakeStopPlay(); return; }
+    if(a){ try{ a.pause(); }catch(e){} }
+    try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+    if(ui.shAudioEl){ try{ ui.shAudioEl.pause(); }catch(e){} }
+    try{ a = new Audio(sc.audioUrl); }catch(e){ toast('내 목소리를 재생하지 못했어요.', true); return; }
+    ui.shScAudioEl = a;
+    ui.shScPlaying = true;
+    a.onended = function(){ if(ui.shScAudioEl === a){ ui.shScAudioEl = null; } if(ui.shScPlaying){ ui.shScPlaying = false; shRenderPrac(); } };
+    a.onpause = function(){ if(ui.shScAudioEl === a){ ui.shScAudioEl = null; } if(ui.shScPlaying){ ui.shScPlaying = false; shRenderPrac(); } };
+    a.onerror = function(){ if(ui.shScAudioEl === a){ ui.shScAudioEl = null; } ui.shScPlaying = false; shRenderPrac(); toast('내 목소리를 재생하지 못했어요. 한 번 더 눌러 주세요.', true); };
+    try{
+      var pr = a.play();
+      if(pr && pr.catch){
+        pr.catch(function(){
+          if(ui.shScAudioEl === a) ui.shScAudioEl = null;
+          ui.shScPlaying = false;
+          shRenderPrac();
+          toast('내 목소리를 재생하지 못했어요. 한 번 더 눌러 주세요.', true);
+        });
+      }
+    }catch(e){ ui.shScAudioEl = null; ui.shScPlaying = false; }
+    shRenderPrac();
+  }
   function shListen(){
     var line = shLine();
     if(!line || !line.en) return;
@@ -3558,7 +3746,9 @@
     shHeard = '';
     ui.shLive = '';
     ui.shListening = true;
-    ui.shScore = null;
+    shScoreClear();
+    var take = shTakeStart();          /* 말하는 동안 내 목소리 녹음 (실패해도 채점은 계속) */
+    var srStart = Date.now(), srErr = '';
     shRenderPrac();
     r.onresult = function(e){
       var t = '';
@@ -3569,6 +3759,9 @@
       if(el) el.textContent = t || '…';
     };
     r.onerror = function(e){
+      srErr = (e && e.error) || '';
+      /* 동시 녹음 때문에 음성인식이 끊긴 경우는 onend에서 한 번만 다시 시작한다 */
+      if(srErr === 'aborted') return;
       var msg = '말하기 인식이 잘 안 됐어요. 다시 시도해 주세요.';
       if(e.error === 'not-allowed' || e.error === 'service-not-allowed') msg = '마이크를 허용해 주셔야 따라 말하기를 채점할 수 있어요.';
       else if(e.error === 'no-speech') msg = '소리가 잘 안 들렸어요. 마이크 가까이에서 다시 말해 주세요.';
@@ -3579,12 +3772,30 @@
       shSR = null;
       ui.shListening = false;
       ui.shLive = '';
-      ui.shScore = shScoreLine(line.en, shHeard);
+      var sc = shScoreLine(line.en, shHeard);
+      if(sc && take){ sc.takeId = take.id; sc.audioPending = true; }
+      ui.shScore = sc;
+      shTakeStop(take);
       shRenderPrac();
+      /* iOS에서 동시 녹음이 음성인식을 끊었을 때: 녹음을 포기하고 채점만 다시 */
+      var quick = (Date.now() - srStart) < 1200 && !String(shHeard || '').trim();
+      var killed = (srErr === 'aborted' || srErr === 'audio-capture' || !srErr);
+      if(quick && killed && take && take.used && !ui.shTakeBlocked){
+        ui.shTakeBlocked = true;
+        shTakeKill(take);
+        ui.shScore = null;
+        ui.shTakeNote = 'blocked';
+        shRenderPrac();
+        toast('이 기기에서는 말하는 동안 녹음이 같이 안 돼서, 채점만 다시 할게요. 한 번 더 말해 주세요. 내 목소리는 아래 "녹음" 버튼으로 남길 수 있어요.');
+        setTimeout(function(){ if(!ui.shListening && !shSR) shListen(); }, 450);
+      }
     };
     try{ r.start(); }
     catch(err){
-      shSR = null; ui.shListening = false; shRenderPrac();
+      shSR = null; ui.shListening = false;
+      if(take) shTakeKill(take);
+      ui.shTakeNote = '';
+      shRenderPrac();
       toast('말하기를 시작할 수 없어요. 잠시 뒤 다시 눌러 주세요.', true);
     }
   }
@@ -3607,6 +3818,7 @@
     if(ui.shRec){ try{ ui.shRec.stop(); }catch(e){} return; }
     var line = shLine();
     if(!line) return;
+    if(ui.shScAudioEl || ui.shScPlaying){ if(ui.shScAudioEl){ try{ ui.shScAudioEl.pause(); }catch(e){} } ui.shScAudioEl = null; ui.shScPlaying = false; }
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof window.MediaRecorder === 'undefined'){
       toast('이 브라우저에서는 녹음이 안 돼요. 아이폰은 iOS 14.3 이상 사파리에서 됩니다.', true);
       return;
@@ -3673,6 +3885,7 @@
   }
   function shPlayRecAudio(){
     if(!ui.shAudioUrl) return false;
+    if(ui.shScAudioEl){ try{ ui.shScAudioEl.pause(); }catch(e){} ui.shScAudioEl = null; ui.shScPlaying = false; }
     try{
       if(ui.shAudioEl){ try{ ui.shAudioEl.pause(); }catch(e){} }
       var a = new Audio(ui.shAudioUrl);
@@ -3738,7 +3951,7 @@
     }
     ui.shLessonId = shadow.lessons.length ? shadow.lessons[0].id : '';
     ui.shIdx = 0;
-    ui.shScore = null;
+    shScoreClear();
     ui.shStopAt = null;
     saveShadow();
     if(!shadow.lessons.length){
@@ -3800,7 +4013,7 @@
     shadow.lastId = l.id;
     ui.shLessonId = l.id;
     ui.shIdx = 0;
-    ui.shScore = null;
+    shScoreClear();
     ui.shParsed = null;
     ui.shStopAt = null;
     ui.shAudioUrl = '';
@@ -3957,7 +4170,7 @@
     if(action === 'sh-again'){ shPlayLine(); return; }
     if(action === 'sh-listen-line'){ shListenLine(); return; }
     if(action === 'sh-play-rec'){ shPlayRec(); return; }
-    if(action === 'sh-say-heard'){ shSpeakHeard(); return; }
+    if(action === 'sh-say-heard'){ shPlayHeard(); return; }
     if(action === 'sh-back'){ shBackSec(el.dataset.sec); return; }
     if(action === 'sh-rate'){ shSetRate(Number(el.dataset.rate)); return; }
     if(action === 'sh-hide-en'){ ui.shHideEn = !ui.shHideEn; shRenderPrac(); shRenderLines(); return; }
