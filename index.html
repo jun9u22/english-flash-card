@@ -3480,8 +3480,15 @@
     box.hidden = !open;
     if(btn) btn.classList.toggle('on', open);
     if(open){
-      setTimeout(function(){ var u = document.getElementById('shUrl'); if(u) u.focus(); }, 60);
-      box.scrollIntoView({ block: 'nearest' });
+      setTimeout(function(){
+        var u = document.getElementById('shUrl');
+        if(u){ try{ u.focus({ preventScroll: true }); }catch(e){ u.focus(); } }
+      }, 60);
+      var m = document.getElementById('main');
+      if(m){
+        var top = box.getBoundingClientRect().top - m.getBoundingClientRect().top + m.scrollTop;
+        m.scrollTop = Math.max(0, top - 8);
+      }
     }else{
       var m = document.getElementById('main');
       if(m) m.scrollTop = 0;
