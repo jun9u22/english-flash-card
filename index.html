@@ -140,6 +140,34 @@
   .pos-count{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--muted);background:#fff;border:1px solid var(--line2);border-radius:999px;padding:2px 8px;letter-spacing:.2px;font-variant-numeric:tabular-nums;white-space:nowrap}
   .pos-count b{color:var(--ink);font-size:11.5px;margin-right:1px}
   .pos-count[hidden]{display:none}
+  .pos-count .pos-date{color:var(--ink-soft);font-weight:800}
+  /* 읽음 표시 — 한 번 넘겨 본 카드 배지 + 그날 완독 카운터 */
+  .read-badge{
+    font-size:9.5px;font-weight:800;letter-spacing:-.1px;color:#2F8568;
+    background:#E7F7F0;border:1px solid #C8EBDD;padding:3px 8px;border-radius:999px;white-space:nowrap;
+  }
+  .read-badge[hidden]{display:none}
+  .face-top .read-badge{margin-right:auto}
+  .read-line{display:flex;align-items:center;gap:7px;margin:0 4px 7px;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:-.2px}
+  .read-line[hidden]{display:none}
+  .read-line b{color:var(--ink);font-size:12.5px;font-family:inherit}
+  .read-line.done .read-lbl{color:#3E9C80}
+  .read-done{color:#3E9C80;background:var(--mint-soft);border:1px solid #D6F0E6;border-radius:999px;padding:2px 8px;font-size:10.5px}
+  .read-reset{margin-left:auto;background:#fff;border:1px solid var(--line2);border-radius:999px;padding:3px 9px;font-size:10px;font-weight:800;color:#A99C8E}
+  .read-reset:active{transform:scale(.96)}
+  /* 이전 카드 — 다음 카드 왼쪽의 이동 버튼 */
+  .prev-card{
+    flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;justify-content:center;
+    min-height:46px;padding:8px 9px;
+    background:#fff;border:1.5px solid var(--line2);border-radius:18px;
+    color:var(--ink-soft);font-size:12px;font-weight:800;letter-spacing:-.3px;
+    line-height:1.1;white-space:nowrap;box-shadow:var(--shadow-sm);
+    transition:transform .12s,background .18s,border-color .18s,color .18s;
+  }
+  .prev-card .prev-arrow{font-style:normal;font-size:13px;font-weight:800;opacity:.55;line-height:1}
+  .prev-card:active{transform:scale(.96)}
+  .prev-card.off{color:#C4B7A8;border-style:dashed;box-shadow:none;background:#FBF7F2}
+  .prev-card.off .prev-arrow{opacity:.4}
 
   .stage{position:relative;z-index:1}
   /* 카드 크기 확대 — 화면에 남는 높이를 최대한 쓰고, 좁은 화면에서도 320px 아래로는 내려가지 않음 */
@@ -780,6 +808,7 @@
           </button>
         </span>
       </div>
+      <div class="read-line" id="readLine" hidden></div>
       <div class="del-ask study-ask" id="studyAsk" hidden>
         <span class="ask-txt" id="studyAskTxt">이 카드를 지울까요?</span>
         <span class="ask-btns">
@@ -1599,6 +1628,7 @@
     }
     ui.queue = list.map(function(c){ return c.id; });
     ui.qIndex = 0;
+    navReset();
     ui.sessionDone = 0;
     ui.flipped = false;
     /* 이 목록 안에서 몇 번째인지 세는 기준 — 공부하는 동안 순서가 흔들려도 번호가 튀지 않게 따로 보관 */
@@ -1620,28 +1650,175 @@
     return null;
   }
 
-  /* ---------- 이 날짜(공부 목록)에서 몇 번째 문장인지 ---------- */
-  function posOrder(){
-    if(!ui.orderIds) ui.orderIds = [];
-    return ui.orderIds;
+  /* ---------- 그날 저장한 순서대로 매기는 고정 번호 ---------- */
+  /* 저장 시각 — createdAt, 없으면 id에 박힌 시각, 그것도 없으면 0 */
+  function createdStamp(c){
+    return Number(c && c.createdAt) || tsFromId(c && c.id) || 0;
   }
-  function posInfo(card){
-    if(!card) return null;
-    var order = posOrder().filter(function(id){
-      var c = cardById(id);
-      return !!(c && !c.archived);
+  /* 같은 날짜에 저장한 카드 전체(보관한 카드는 빼고)를 저장 순서대로 */
+  function dayPool(key){
+    var k = String(key || '');
+    var arr = activeCards().filter(function(c){ return cardDate(c) === k; });
+    var idx = {};
+    state.cards.forEach(function(c, i){ idx[c.id] = i; });
+    arr.sort(function(a, b){
+      var ta = createdStamp(a), tb = createdStamp(b);
+      if(ta !== tb) return ta - tb;
+      var ia = (idx[a.id] == null ? 1e9 : idx[a.id]);
+      var ib = (idx[b.id] == null ? 1e9 : idx[b.id]);
+      if(ia !== ib) return ia - ib;
+      return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
     });
-    var at = order.indexOf(card.id);
-    if(at < 0){ order.push(card.id); at = order.length - 1; }
-    ui.orderIds = order;
-    return { pos: at + 1, total: order.length };
+    return arr;
+  }
+  /* 이 카드가 그날 저장한 카드 중 몇 번째인지 — 공부 큐 순서와 상관없이 고정 */
+  function dayInfo(card){
+    if(!card) return null;
+    var key = cardDate(card);
+    if(!key) return null;
+    var pool = dayPool(key), pos = 0;
+    for(var i = 0; i < pool.length; i++){ if(pool[i].id === card.id){ pos = i + 1; break; } }
+    if(!pos) return null;
+    return { key: key, pos: pos, total: pool.length };
   }
   function renderPos(card){
     var el = document.getElementById('posText');
     if(!el) return;
-    var pi = posInfo(card);
-    if(pi){ el.hidden = false; el.innerHTML = '<b>' + pi.pos + '</b> / ' + pi.total; }
-    else { el.hidden = true; el.textContent = ''; }
+    var di = dayInfo(card);
+    if(di){
+      el.hidden = false;
+      el.innerHTML = '<span class="pos-date">' + dateLabel(di.key) + '</span> · <b>' + di.pos + '</b> / ' + di.total;
+    }else{
+      el.hidden = true; el.textContent = '';
+    }
+  }
+
+  /* ---------- 읽음 표시 — 한 번 넘겨 본 카드 기록(전용 키, 기존 저장은 건드리지 않음) ---------- */
+  var READ_KEY = 'jungsuk.flashcardReadMarks.v1';
+  var readMarks = {};
+  function readLoad(){
+    var raw = null;
+    try{ raw = window.localStorage.getItem(READ_KEY); }catch(e){ raw = null; }
+    readMarks = {};
+    if(!raw) return;
+    try{
+      var o = JSON.parse(raw);
+      if(o && o.marks && typeof o.marks === 'object') o = o.marks;
+      if(!o || typeof o !== 'object') return;
+      Object.keys(o).forEach(function(k){
+        if(/^[A-Za-z0-9_-]{1,64}$/.test(k)) readMarks[k] = Number(o[k]) || 1;
+      });
+    }catch(e){ readMarks = {}; }
+  }
+  function readSave(){
+    try{
+      var alive = {};
+      state.cards.forEach(function(c){ if(readMarks[c.id]) alive[c.id] = readMarks[c.id]; });
+      readMarks = alive;
+      window.localStorage.setItem(READ_KEY, JSON.stringify(readMarks));
+    }catch(e){}
+  }
+  function markRead(id){
+    if(!id || readMarks[id]) return false;
+    readMarks[id] = now();
+    readSave();
+    var on = readMarks[id];
+    $all('[data-read-id]').forEach(function(b){ if(b.dataset.readId === id){ b.hidden = !on; } });
+    renderReadBar();
+    return true;
+  }
+  function readBadgeHTML(card){
+    var on = !!(card && readMarks[card.id]);
+    return '<span class="read-badge' + (on ? ' on' : '') + '" data-read-id="' + esc(card ? card.id : '') + '"' + (on ? '' : ' hidden') + '>읽음 ✓</span>';
+  }
+  /* 어느 날짜 묶음의 읽음을 세는지 — 고른 날짜 → 없으면 오늘 → 없으면 지금 카드의 날짜 */
+  function readScopeKey(card){
+    var f = ui.dateFilter;
+    if(f === 'none') return '';
+    if(f && f !== 'all') return f;
+    var tk = todayKey();
+    if(dayPool(tk).length) return tk;
+    return card ? cardDate(card) : '';
+  }
+  function renderReadBar(card){
+    var el = document.getElementById('readLine');
+    if(!el) return;
+    var cur = card || currentCard();
+    var key = readScopeKey(cur);
+    var pool = (key || ui.dateFilter === 'none') ? dayPool(key) : [];
+    if(!pool.length || ui.shadow === true){ el.hidden = true; el.innerHTML = ''; return; }
+    var total = pool.length;
+    var read = pool.filter(function(c){ return !!readMarks[c.id]; }).length;
+    var done = read >= total;
+    var tKey = todayKey();
+    var name = (key === tKey) ? '오늘' : (key ? dateLabel(key) : '기존');
+    el.hidden = false;
+    el.className = 'read-line' + (done ? ' done' : '');
+    el.innerHTML = '<span class="read-lbl">' + name + ' 읽음 <b>' + read + '</b> / ' + total + '</span>' +
+      (done ? '<span class="read-done">다 읽음 ✓</span>' : '') +
+      '<button class="read-reset" type="button" data-action="read-reset" aria-label="이 날짜 읽음 표시 지우기">초기화</button>';
+  }
+  function readReset(){
+    var key = readScopeKey(currentCard());
+    var pool = dayPool(key);
+    if(!pool.length) return;
+    pool.forEach(function(c){ delete readMarks[c.id]; });
+    readSave();
+    renderStudy();
+    toast('이 날짜 읽음 표시를 지웠어요');
+  }
+
+  /* ---------- 이전 카드 — 방금 지나온 카드로 되돌아가기 ---------- */
+  var navTrail = { ids: [], at: -1 };
+  function navReset(){ navTrail = { ids: [], at: -1 }; }
+  function navTrack(id){
+    if(!id) return;
+    var at = navTrail.at;
+    if(at >= 0 && navTrail.ids[at] === id) return;
+    navTrail.ids = navTrail.ids.slice(0, at + 1);
+    navTrail.ids.push(id);
+    navTrail.at = navTrail.ids.length - 1;
+  }
+  function navCanPrev(){
+    for(var i = navTrail.at - 1; i >= 0; i--){
+      var c = cardById(navTrail.ids[i]);
+      if(c && !c.archived) return true;
+    }
+    return false;
+  }
+  function prevCardHTML(){
+    var can = navCanPrev();
+    return '<button type="button" class="prev-card' + (can ? '' : ' off') + '" id="prevCard" data-action="prev-card"' +
+        (can ? '' : ' disabled') + ' aria-label="이전 카드 보기">' +
+        '<i class="prev-arrow" aria-hidden="true">←</i><span>이전 카드</span>' +
+      '</button>';
+  }
+  function navFocus(id){
+    var card = cardById(id);
+    if(!card || card.archived) return false;
+    var at = ui.queue.indexOf(id);
+    if(at >= 0){
+      ui.queue.splice(at, 1);
+      if(at < ui.qIndex) ui.qIndex--;
+    }
+    ui.queue.splice(ui.qIndex, 0, id);
+    ui.flipped = false;
+    ui.pop = null;
+    renderStudy();
+    return true;
+  }
+  function prevCard(){
+    var card = currentCard();
+    if(!card || ui.busy) return;
+    var target = '', hit = -1;
+    for(var i = navTrail.at - 1; i >= 0; i--){
+      var c = cardById(navTrail.ids[i]);
+      if(c && !c.archived){ target = navTrail.ids[i]; hit = i; break; }
+    }
+    if(!target){ toast('이전 카드가 없어요 · 첫 카드예요', true); return; }
+    markRead(card.id);
+    navTrail.at = hit;
+    navFocus(target);
   }
 
   function renderStudy(){
@@ -1653,11 +1830,11 @@
     if(ui.checkedId && (!card || ui.checkedId !== card.id)) ui.checkedId = null;
     var tb = $('.theme-bar');
     if(tb) tb.hidden = isSpeech();
-    var pgDate = card ? cardDate(card) : '';
-    $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel() +
-      (pgDate ? ' <span class="pg-date">· ' + dateLabel(pgDate) + ' 추가</span>' : '');
+    $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel();
+    navTrack(card ? card.id : '');
     $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + unitLabel() + ' 완료') : '이번 세션 0' + unitLabel();
     renderPos(card);
+    renderReadBar(card);
     renderDeleteControls(card);
 
     if(!card){
@@ -1702,19 +1879,19 @@
       '<div class="flip-wrap">',
         '<div class="flip-card' + (ui.flipped ? ' flipped' : '') + '" id="flipCard" data-action="flip" role="button" tabindex="0" aria-label="카드를 눌러 앞뒤로 뒤집기">',
           '<div class="face front">',
-            '<div class="face-top"><span class="tag">ENGLISH</span>' + bmkHTML(card) + '</div>',
+            '<div class="face-top"><span class="tag">ENGLISH</span>' + readBadgeHTML(card) + bmkHTML(card) + '</div>',
             '<div class="card-body"><p class="card-text">' + esc(card.front) + '</p></div>',
             '<button class="speak-btn" data-action="speak" data-noflip="1" aria-label="영어 발음 듣기">발음 듣기</button>',
             '<span class="flip-hint">카드를 눌러 뜻 보기</span>',
           '</div>',
           '<div class="face back">',
-            '<div class="face-top"><span class="tag mint">한국어</span>' + bmkHTML(card) + '</div>',
+            '<div class="face-top"><span class="tag mint">한국어</span>' + readBadgeHTML(card) + bmkHTML(card) + '</div>',
             '<div class="card-body"><p class="card-text ko">' + esc(card.back || '—') + '</p></div>',
             '<span class="flip-hint">다시 눌러 영어로</span>',
           '</div>',
         '</div>',
       '</div>',
-      '<div class="rcheck-row">', reviewCheckHTML(card), nextCardHTML(card), '</div>',
+      '<div class="rcheck-row">', reviewCheckHTML(card), prevCardHTML(), nextCardHTML(card), '</div>',
       '<div class="actions' + (ui.flipped || ui.checkedId === card.id ? '' : ' locked') + '">',
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
@@ -1733,6 +1910,7 @@
       '<div class="notecard">',
         '<div class="note-head">',
           '<span class="tag speech">SPEECH</span>',
+          readBadgeHTML(card),
           '<span class="note-title">' + esc(cardLabel(card, 24) || '제목 없음') + '</span>',
           '<span class="note-side">',
             '<button class="' + (side === 'en' ? 'on' : '') + '" data-action="speech-side" data-side="en" aria-pressed="' + (side === 'en') + '">영어</button>',
@@ -1745,7 +1923,7 @@
           '<span class="note-meta">' + wc + '단어 · 약 ' + mins + '분</span>',
         '</div>',
       '</div>',
-      '<div class="rcheck-row">', reviewCheckHTML(card), nextCardHTML(card), '</div>',
+      '<div class="rcheck-row">', reviewCheckHTML(card), prevCardHTML(), nextCardHTML(card), '</div>',
       '<div class="actions' + (side === 'ko' || ui.checkedId === card.id ? '' : ' locked') + '">',
         '<button class="act again" data-action="grade-again">다시 볼래요</button>',
         '<button class="act known" data-action="grade-known">외웠어요</button>',
@@ -2191,6 +2369,7 @@
   function flip(){
     if(isSpeech()){ stopTTS(); setSpeechSide(ui.speechSide === 'ko' ? 'en' : 'ko'); return; }
     ui.flipped = !ui.flipped;
+    if(ui.flipped){ var rc = currentCard(); if(rc) markRead(rc.id); }
     var c = $('#flipCard');
     if(c){
       c.classList.toggle('flipped', ui.flipped);
@@ -2214,6 +2393,7 @@
   function reviewCheck(){
     var card = currentCard();
     if(!card) return;
+    markRead(card.id);
     var key = todayKey();
     var h = state.studyHistory[key];
     var t = now();
@@ -2276,6 +2456,7 @@
   function nextCard(){
     var card = currentCard();
     if(!card || ui.busy) return;
+    markRead(card.id);
     var checked = (ui.checkedId === card.id);
     var left = Math.max(0, ui.queue.length - ui.qIndex);
     if(checked){
@@ -2298,6 +2479,7 @@
   function grade(knew){
     var card = currentCard();
     if(!card || ui.busy) return;
+    markRead(card.id);
     var checked = (ui.checkedId === card.id);
     if(!knew){
       clearCheck();
@@ -2562,6 +2744,7 @@
     var card = seqCardAt(seq.idx);
     seqUpdateBar();
     if(!card) return;
+    markRead(card.id);
     if(ui.tab !== 'study' || ui.shadow || isSpeech()) return;
     if(ui.queue.length !== seq.list.length || ui.queue[ui.qIndex] !== card.id){
       ui.queue = seq.list.slice();
@@ -4675,6 +4858,8 @@
     if(action === 'grade-again'){ grade(false); return; }
     if(action === 'review-check'){ reviewCheck(); return; }
     if(action === 'next-card'){ nextCard(); return; }
+    if(action === 'prev-card'){ prevCard(); return; }
+    if(action === 'read-reset'){ readReset(); return; }
     if(action === 'review-undo'){ reviewUndo(); return; }
     if(action === 'archive-current'){
       var c = currentCard();
@@ -4874,6 +5059,7 @@
 
   /* ---------- 시작 ---------- */
   load();
+  readLoad();
   loadShadow();
   bmLoad();
   if(!storageOK){
