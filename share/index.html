@@ -132,8 +132,14 @@
   .pg-date{font-size:11.5px;font-weight:700;color:var(--muted);opacity:.95}
   .meta-chip.date{background:#fff;color:var(--ink-soft);border-color:var(--line2)}
 
-  .progress-line{display:flex;justify-content:space-between;align-items:center;margin:9px 4px 6px;font-size:12.5px;color:var(--muted)}
+  .progress-line{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:9px 4px 6px;font-size:12.5px;color:var(--muted)}
   .progress-line b{color:var(--coral-deep);font-size:14px}
+  /* 지금 문장이 이 날짜(공부 목록) 전체 중 몇 번째인지 — 예: 1 / 157 */
+  .prog-left{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto}
+  .prog-left #progressText{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pos-count{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--muted);background:#fff;border:1px solid var(--line2);border-radius:999px;padding:2px 8px;letter-spacing:.2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pos-count b{color:var(--ink);font-size:11.5px;margin-right:1px}
+  .pos-count[hidden]{display:none}
 
   .stage{position:relative;z-index:1}
   /* 카드 크기 확대 — 화면에 남는 높이를 최대한 쓰고, 좁은 화면에서도 320px 아래로는 내려가지 않음 */
@@ -665,7 +671,10 @@
         <div class="theme-swatches" id="themeSwatches"></div>
       </div>
       <div class="progress-line">
-        <span id="progressText">남은 카드 <b>0</b>장</span>
+        <span class="prog-left">
+          <span class="pos-count" id="posText" hidden>1 / 157</span>
+          <span id="progressText">남은 카드 <b>0</b>장</span>
+        </span>
         <span class="prog-right">
           <span id="sessionText">이번 세션 0장</span>
           <button class="stage-del" id="studyDelBtn" data-action="ask-delete" hidden aria-label="이 카드 지우기">
@@ -920,6 +929,7 @@
     manageSeg: 'active',
     search: '',
     dateFilter: 'all',
+    orderIds: [],
     bulkRows: [],
     cycleTarget: 'default',
     pop: null,
@@ -1357,6 +1367,8 @@
     ui.qIndex = 0;
     ui.sessionDone = 0;
     ui.flipped = false;
+    /* 이 목록 안에서 몇 번째인지 세는 기준 — 공부하는 동안 순서가 흔들려도 번호가 튀지 않게 따로 보관 */
+    ui.orderIds = ui.queue.slice();
   }
   function shuffle(arr){
     for(var i = arr.length - 1; i > 0; i--){
@@ -1374,6 +1386,30 @@
     return null;
   }
 
+  /* ---------- 이 날짜(공부 목록)에서 몇 번째 문장인지 ---------- */
+  function posOrder(){
+    if(!ui.orderIds) ui.orderIds = [];
+    return ui.orderIds;
+  }
+  function posInfo(card){
+    if(!card) return null;
+    var order = posOrder().filter(function(id){
+      var c = cardById(id);
+      return !!(c && !c.archived);
+    });
+    var at = order.indexOf(card.id);
+    if(at < 0){ order.push(card.id); at = order.length - 1; }
+    ui.orderIds = order;
+    return { pos: at + 1, total: order.length };
+  }
+  function renderPos(card){
+    var el = document.getElementById('posText');
+    if(!el) return;
+    var pi = posInfo(card);
+    if(pi){ el.hidden = false; el.innerHTML = '<b>' + pi.pos + '</b> / ' + pi.total; }
+    else { el.hidden = true; el.textContent = ''; }
+  }
+
   function renderStudy(){
     var card = currentCard();
     var stage = $('#stage');
@@ -1387,6 +1423,7 @@
     $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel() +
       (pgDate ? ' <span class="pg-date">· ' + dateLabel(pgDate) + ' 추가</span>' : '');
     $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + unitLabel() + ' 완료') : '이번 세션 0' + unitLabel();
+    renderPos(card);
     renderDeleteControls(card);
 
     if(!card){
@@ -2280,6 +2317,7 @@
     if(ui.tab !== 'study' || isSpeech()) return;
     if(ui.queue.length !== seq.list.length || ui.queue[ui.qIndex] !== card.id){
       ui.queue = seq.list.slice();
+      ui.orderIds = seq.list.slice();   /* 이어 듣기도 같은 목록 기준으로 1 / 157 */
     }
     ui.qIndex = Math.min(seq.idx, Math.max(0, ui.queue.length - 1));
     ui.flipped = (seq.phase === 'ko');
@@ -2725,6 +2763,8 @@
     if(catOf(c) !== ui.cat) return;
     if(ui.queue.indexOf(id) >= 0) return;
     ui.queue.push(id);
+    var order = posOrder();
+    if(order.indexOf(id) < 0) order.push(id);
   }
 
   /* ---------- 자료 파싱 ---------- */
