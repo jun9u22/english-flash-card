@@ -157,8 +157,8 @@
   .read-reset:active{transform:scale(.96)}
   /* 이전 카드 — 다음 카드 왼쪽의 이동 버튼 */
   .prev-card{
-    flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;justify-content:center;
-    min-height:46px;padding:8px 9px;
+    flex:0 0 auto;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    min-width:76px;min-height:46px;padding:8px 10px;
     background:#fff;border:1.5px solid var(--line2);border-radius:18px;
     color:var(--ink-soft);font-size:12px;font-weight:800;letter-spacing:-.3px;
     line-height:1.1;white-space:nowrap;box-shadow:var(--shadow-sm);
@@ -1736,9 +1736,10 @@
     var f = ui.dateFilter;
     if(f === 'none') return '';
     if(f && f !== 'all') return f;
+    if(card && cardDate(card)) return cardDate(card);
     var tk = todayKey();
     if(dayPool(tk).length) return tk;
-    return card ? cardDate(card) : '';
+    return '';
   }
   function renderReadBar(card){
     var el = document.getElementById('readLine');
@@ -1790,7 +1791,7 @@
     var can = navCanPrev();
     return '<button type="button" class="prev-card' + (can ? '' : ' off') + '" id="prevCard" data-action="prev-card"' +
         (can ? '' : ' disabled') + ' aria-label="이전 카드 보기">' +
-        '<i class="prev-arrow" aria-hidden="true">←</i><span>이전 카드</span>' +
+        '<span>이전 카드</span><i class="prev-arrow" aria-hidden="true">←</i>' +
       '</button>';
   }
   function navFocus(id){
