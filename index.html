@@ -111,6 +111,27 @@
   .seg button.on.mint{background:linear-gradient(135deg,#77D6BA,#4FB795);box-shadow:0 4px 12px rgba(79,183,149,.3)}
   .seg button small{font-weight:700;opacity:.85;font-size:11px}
 
+  /* 추가한 날짜별 보기 — 아이폰에서 손가락으로 누르기 좋은 칩 바 */
+  .date-bar{
+    display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding:2px 2px 8px;margin:2px 0 0;
+  }
+  .date-bar::-webkit-scrollbar{display:none}
+  .date-chip{
+    flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:34px;
+    padding:7px 12px;border-radius:999px;background:#fff;border:1.4px solid var(--line2);
+    color:var(--muted);font-size:12px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;
+    transition:.16s;box-shadow:0 2px 8px rgba(180,140,110,.08);
+  }
+  .date-chip:active{transform:scale(.97)}
+  .date-chip b{font-weight:800;font-size:10.5px;opacity:.65}
+  .date-chip.today{color:var(--coral-deep);border-color:#F7CDC0}
+  .date-chip.on{background:var(--ink);border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(76,63,55,.22)}
+  .date-chip.on b{opacity:.82}
+  .date-chip.today.on{background:linear-gradient(135deg,#FF9C86,#F2765C);box-shadow:0 4px 12px rgba(242,118,92,.3)}
+  .pg-date{font-size:11.5px;font-weight:700;color:var(--muted);opacity:.95}
+  .meta-chip.date{background:#fff;color:var(--ink-soft);border-color:var(--line2)}
+
   .progress-line{display:flex;justify-content:space-between;align-items:center;margin:9px 4px 6px;font-size:12.5px;color:var(--muted)}
   .progress-line b{color:var(--coral-deep);font-size:14px}
 
@@ -736,6 +757,7 @@
         <button class="on coral" data-action="mode" data-mode="due" role="tab">오늘 복습 <small id="segDue">0</small></button>
         <button class="mint" data-action="mode" data-mode="free" role="tab">자유 복습 <small id="segFree">0</small></button>
       </div>
+      <div class="date-bar" id="dateBarStudy" role="group" aria-label="추가한 날짜로 보기"></div>
       <div class="theme-bar">
         <span class="tl">카드 배경<b id="themeName">단색 베이지</b></span>
         <div class="theme-swatches" id="themeSwatches"></div>
@@ -924,6 +946,7 @@
         <span class="mag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
         <input type="text" id="searchInput" placeholder="영어나 한글로 카드 찾기">
       </div>
+      <div class="date-bar" id="dateBarManage" role="group" aria-label="추가한 날짜로 보기"></div>
       <div class="card-list" id="cardList"></div>
 
       <div class="panel settings">
@@ -1095,6 +1118,7 @@
     sessionDone: 0,
     manageSeg: 'active',
     search: '',
+    dateFilter: 'all',
     bulkRows: [],
     cycleTarget: 'default',
     pop: null,
@@ -1206,6 +1230,7 @@
         nextReview: t,
         lastReview: null,
         createdAt: t,
+        addedDate: dateKeyOf(new Date(t)),
         archived: false,
         archivedAt: null
       };
@@ -1249,8 +1274,15 @@
     }
     iv = { value: Math.max(1, Math.round(iv.value)), unit: iv.unit };
     var nr = Number(raw.nextReview);
+    var cid = typeof raw.id === 'string' && raw.id ? raw.id : uid();
+    /* 추가한 날짜 — createdAt이 없으면 id에 박힌 타임스탬프, 그것도 없으면 addedDate에서 되살린다 */
+    var cts = Number(raw.createdAt);
+    if(!isFinite(cts) || cts <= 0) cts = tsFromId(cid);
+    var adRaw = String(raw.addedDate == null ? '' : raw.addedDate);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(adRaw)) adRaw = '';
+    if(!cts && adRaw){ var adD = parseKey(adRaw); if(adD) cts = adD.getTime(); }
     return {
-      id: typeof raw.id === 'string' && raw.id ? raw.id : uid(),
+      id: cid,
       category: raw.category === 'speech' ? 'speech' : 'word',
       title: String(raw.title == null ? '' : raw.title).trim(),
       front: front,
@@ -1259,7 +1291,8 @@
       reviews: Math.max(0, Math.floor(Number(raw.reviews) || 0)),
       nextReview: isFinite(nr) && nr > 0 ? nr : now(),
       lastReview: Number(raw.lastReview) || null,
-      createdAt: Number(raw.createdAt) || now(),
+      createdAt: cts,
+      addedDate: adRaw || (cts ? dateKeyOf(new Date(cts)) : ''),
       archived: !!raw.archived,
       archivedAt: Number(raw.archivedAt) || null
     };
@@ -1416,6 +1449,86 @@
     return cardsIn(ui.cat).reduce(function(s, c){ return s + c.reviews; }, 0);
   }
   function cardById(id){ return state.cards.find(function(c){ return c.id === id; }) || null; }
+
+  /* ---------- 추가한 날짜별 보기 ---------- */
+  /* 오래된 저장 데이터에 createdAt이 없을 때 id("c" + 36진수 시각 + 랜덤 5자)에서 시각을 되살린다 */
+  function tsFromId(id){
+    var m = /^c([0-9a-z]+)/.exec(String(id || ''));
+    if(!m) return 0;
+    var s = m[1];
+    /* id 뒤에 붙은 랜덤 글자 때문에 진짜 시각보다 긴 숫자가 된다 → 2000~2100년에 들어오는 앞자리만 채택 */
+    for(var len = Math.min(s.length, 12); len >= 6; len--){
+      var t = parseInt(s.slice(0, len), 36);
+      if(isFinite(t) && t > 946684800000 && t < 4102444800000) return t;
+    }
+    return 0;
+  }
+  function cardDate(c){
+    if(!c) return '';
+    if(/^\d{4}-\d{2}-\d{2}$/.test(String(c.addedDate || ''))) return c.addedDate;
+    var t = Number(c.createdAt) || tsFromId(c.id);
+    return t ? dateKeyOf(new Date(t)) : '';
+  }
+  function dateLabel(key){
+    var d = parseKey(key);
+    if(!d) return '기존';
+    var y = (d.getFullYear() !== new Date().getFullYear()) ? (d.getFullYear() + '.') : '';
+    return y + (d.getMonth() + 1) + '/' + d.getDate();
+  }
+  function dateBuckets(){
+    var counts = {}, none = 0;
+    activeCards().forEach(function(c){
+      var k = cardDate(c);
+      if(!k){ none++; return; }
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    var keys = Object.keys(counts);
+    keys.sort(function(a, b){ return a < b ? 1 : (a > b ? -1 : 0); });   /* 최신 날짜부터 */
+    return { keys: keys, counts: counts, none: none };
+  }
+  function matchDate(c){
+    if(ui.dateFilter === 'all') return true;
+    var k = cardDate(c);
+    if(ui.dateFilter === 'none') return !k;
+    return k === ui.dateFilter;
+  }
+  function viewCards(){ return activeCards().filter(matchDate); }
+  function viewArchived(){ return archivedCards().filter(matchDate); }
+  function setDateFilter(key){
+    ui.dateFilter = key || 'all';
+    ui.delAsk = null;
+    clearCheck();
+    if(seq.on || seq.paused) seqStop(true);
+    buildQueue();
+    renderStats();
+    renderStudy();
+    renderManage();
+    renderSeqBar();
+  }
+  function renderDateBar(){
+    var b = dateBuckets();
+    /* 고른 날짜의 카드를 다 지워서 빈 날짜가 되면 전체로 되돌린다 */
+    if(ui.dateFilter !== 'all' && ui.dateFilter !== 'none' && b.keys.indexOf(ui.dateFilter) < 0) ui.dateFilter = 'all';
+    if(ui.dateFilter === 'none' && !b.none) ui.dateFilter = 'all';
+    var total = 0;
+    b.keys.forEach(function(k){ total += b.counts[k]; });
+    total += b.none;
+    var tKey = todayKey();
+    var html = '<button class="date-chip' + (ui.dateFilter === 'all' ? ' on' : '') + '" data-action="date-filter" data-date="all" aria-pressed="' + (ui.dateFilter === 'all') + '">전체 <b>' + total + '</b></button>';
+    html += b.keys.map(function(k){
+      var on = ui.dateFilter === k;
+      var today = k === tKey;
+      return '<button class="date-chip' + (today ? ' today' : '') + (on ? ' on' : '') + '" data-action="date-filter" data-date="' + k +
+        '" aria-pressed="' + on + '">' + dateLabel(k) + (today ? ' (오늘)' : '') + ' <b>' + b.counts[k] + '</b></button>';
+    }).join('');
+    if(b.none){
+      html += '<button class="date-chip' + (ui.dateFilter === 'none' ? ' on' : '') + '" data-action="date-filter" data-date="none" aria-pressed="' + (ui.dateFilter === 'none') + '">기존 <b>' + b.none + '</b></button>';
+    }
+    ['dateBarStudy', 'dateBarManage'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.innerHTML = html;
+    });
+  }
   /* 카드 이름 — 스피치는 제목, 없으면 지문 앞부분 */
   function cardLabel(c, max){
     if(!c) return '';
@@ -1438,8 +1551,10 @@
     $('#statDue').textContent = due;
     $('#statAll').textContent = act;
     $('#statRev').textContent = totalReviews();
-    $('#segDue').textContent = due;
-    $('#segFree').textContent = act;
+    /* 복습 모드 버튼의 숫자는 지금 고른 날짜 안에서 세어 준다(머릿통계는 전체 기준) */
+    var scoped = ui.dateFilter !== 'all';
+    $('#segDue').textContent = scoped ? viewCards().filter(function(c){ return c.nextReview <= now(); }).length : due;
+    $('#segFree').textContent = scoped ? viewCards().length : act;
     $('#segArchive').textContent = archivedCards().length;
     $('#manageCount').textContent = '공부 중 ' + act + ' · 보관함 ' + archivedCards().length;
     var wEl = document.getElementById('catWordN');
@@ -1459,16 +1574,17 @@
     $('#defaultCycleChip').innerHTML = dl + '<span class="caret"></span>';
     var si = document.getElementById('searchInput');
     if(si) si.placeholder = isSpeech() ? '제목·지문으로 스피치 찾기' : '영어나 한글로 카드 찾기';
+    renderDateBar();
   }
 
   function buildQueue(){
     var t = now();
     var list;
     if(ui.mode === 'due'){
-      list = activeCards().filter(function(c){ return c.nextReview <= t; });
+      list = viewCards().filter(function(c){ return c.nextReview <= t; });
       list.sort(function(a, b){ return a.nextReview - b.nextReview; });
     }else{
-      list = activeCards().slice();
+      list = viewCards().slice();
       shuffle(list);
     }
     ui.queue = list.map(function(c){ return c.id; });
@@ -1501,7 +1617,9 @@
     if(ui.checkedId && (!card || ui.checkedId !== card.id)) ui.checkedId = null;
     var tb = $('.theme-bar');
     if(tb) tb.hidden = isSpeech();
-    $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel();
+    var pgDate = card ? cardDate(card) : '';
+    $('#progressText').innerHTML = '남은 ' + nounLabel() + ' <b>' + left + '</b>' + unitLabel() +
+      (pgDate ? ' <span class="pg-date">· ' + dateLabel(pgDate) + ' 추가</span>' : '');
     $('#sessionText').textContent = ui.sessionDone > 0 ? ('이번 세션 ' + ui.sessionDone + unitLabel() + ' 완료') : '이번 세션 0' + unitLabel();
     renderDeleteControls(card);
 
@@ -1667,6 +1785,31 @@
   function emptyStudyHTML(){
     var act = activeCards().length;
     var due = dueCards().length;
+    /* 날짜를 골라서 보고 있을 때는 그 날짜 기준으로 안내한다 */
+    if(ui.dateFilter !== 'all'){
+      var shown = viewCards().length;
+      var shownDue = viewCards().filter(function(c){ return c.nextReview <= now(); }).length;
+      var fname = ui.dateFilter === 'none' ? '날짜 정보가 없는' : (dateLabel(ui.dateFilter) + '에 추가한');
+      if(!shown){
+        return '<div class="empty">' +
+          '<span class="empty-mark">–</span>' +
+          '<h3>' + esc(fname) + ' ' + nounLabel() + '가 없어요</h3>' +
+          '<p>다른 날짜를 누르거나 <b>전체</b>로 보면<br>모든 ' + nounLabel() + '를 볼 수 있어요.</p>' +
+          '<div class="empty-actions">' +
+            '<button class="btn" data-action="date-filter" data-date="all">전체 보기</button>' +
+          '</div></div>';
+      }
+      if(ui.mode === 'due' && !shownDue){
+        return '<div class="empty">' +
+          '<span class="empty-mark">✓</span>' +
+          '<h3>' + esc(fname) + ' ' + nounLabel() + '는 다 봤어요</h3>' +
+          '<p>이 날짜 ' + nounLabel() + ' ' + shown + unitLabel() + '은 모두 복습했어요.<br>지금 더 보려면 자유 복습으로 넘어가면 돼요.</p>' +
+          '<div class="empty-actions">' +
+            '<button class="btn mint" data-action="mode" data-mode="free">자유 복습 시작</button>' +
+            '<button class="btn ghost" data-action="date-filter" data-date="all">전체 보기</button>' +
+          '</div></div>';
+      }
+    }
     if(act === 0){
       if(isSpeech()){
         return '<div class="empty">' +
@@ -1747,7 +1890,7 @@
   }
 
   function renderManage(){
-    var list = ui.manageSeg === 'archive' ? archivedCards() : activeCards();
+    var list = ui.manageSeg === 'archive' ? viewArchived() : viewCards();
     var q = ui.search.trim().toLowerCase();
     if(q){
       list = list.filter(function(c){
@@ -1755,7 +1898,12 @@
       });
     }
     if(ui.manageSeg === 'archive') list = list.slice().sort(function(a, b){ return (b.archivedAt || 0) - (a.archivedAt || 0); });
-    else list = list.slice().sort(function(a, b){ return a.nextReview - b.nextReview; });
+    else list = list.slice().sort(function(a, b){
+      /* 추가한 날짜별로 묶어서 최근 날짜부터, 같은 날짜 안에서는 복습 순서대로 */
+      var da = cardDate(a), db = cardDate(b);
+      if(da !== db) return da < db ? 1 : -1;
+      return a.nextReview - b.nextReview;
+    });
 
     $all('[data-action="seg-manage"]').forEach(function(b){
       b.classList.toggle('on', b.dataset.seg === ui.manageSeg);
@@ -1777,6 +1925,8 @@
     box.innerHTML = list.map(function(c){
       var status = c.nextReview <= now() ? 'meta-chip due' : nextChipClass(c);
       var meta = miniStampsHTML(c.reviews);
+      var cdk = cardDate(c);
+      meta += '<span class="meta-chip date">' + (cdk ? dateLabel(cdk) + ' 추가' : '날짜 없음') + '</span>';
       if(!c.archived){
         meta += '<span class="' + status + '">' + (c.nextReview <= now() ? '지금 복습' : nextLabel(c.nextReview)) + '</span>';
       }else{
@@ -2344,7 +2494,7 @@
     seq.timer = setTimeout(fin, Math.max(6000, Math.min(30000, body.length * 95)));
   }
 
-  function seqCards(){ return activeCards(); }
+  function seqCards(){ return viewCards(); }
   function seqBuild(){
     seq.list = seqCards().map(function(c){ return c.id; });
     return seq.list.length;
@@ -2745,7 +2895,7 @@
     state.cards.push({
       id: uid(), category: 'word', title: '', front: f, back: b,
       interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
-      reviews: 0, nextReview: t, lastReview: null, createdAt: t,
+      reviews: 0, nextReview: t, lastReview: null, createdAt: t, addedDate: todayKey(),
       archived: false, archivedAt: null
     });
     save(true);
@@ -2779,7 +2929,7 @@
     state.cards.push({
       id: uid(), category: 'speech', title: title, front: f, back: b,
       interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
-      reviews: 0, nextReview: t, lastReview: null, createdAt: t,
+      reviews: 0, nextReview: t, lastReview: null, createdAt: t, addedDate: todayKey(),
       archived: false, archivedAt: null
     });
     save(true);
@@ -2994,7 +3144,7 @@
       state.cards.push({
         id: uid(), category: 'word', title: '', front: r.front, back: r.back,
         interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
-        reviews: 0, nextReview: t, lastReview: null, createdAt: t,
+        reviews: 0, nextReview: t, lastReview: null, createdAt: t, addedDate: todayKey(),
         archived: false, archivedAt: null
       });
       added++;
@@ -4340,7 +4490,7 @@
     var card = {
       id: uid(), category: 'word', title: '', front: front, back: back,
       interval: { value: state.settings.defaultInterval.value, unit: state.settings.defaultInterval.unit },
-      reviews: 0, nextReview: t, lastReview: null, createdAt: t,
+      reviews: 0, nextReview: t, lastReview: null, createdAt: t, addedDate: todayKey(),
       archived: false, archivedAt: null
     };
     state.cards.push(card);
@@ -4503,6 +4653,7 @@
     }
     if(action === 'cal-select'){ ui.calSel = el.dataset.date; renderCalendar(); return; }
     if(action === 'mode'){ setMode(el.dataset.mode); return; }
+    if(action === 'date-filter'){ setDateFilter(el.dataset.date); return; }
     if(action === 'cat'){ setCategory(el.dataset.cat); return; }
     if(action === 'speech-side'){ setSpeechSide(el.dataset.side); return; }
     if(action === 'speech-tts'){ playTTS(); return; }
